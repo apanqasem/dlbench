@@ -1,0 +1,5 @@
+MemUnitStalled
+MemUnitBusy
+SALUBusy
+VALUBusy
+VALUInsts

@@ -1,0 +1,7 @@
+MemUnitStalled
+MemUnitBusy
+SALUBusy
+LDSBankConflict
+GDSInsts
+VALUBusy
+VALUUtilization
