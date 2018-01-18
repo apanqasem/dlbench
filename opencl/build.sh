@@ -136,9 +136,11 @@ case $host in
 		;;
 	paryzen1|t1|ROCNREDLINE)
 		node="fiji"
+		gpu="gfx803"
 		;;
   paripp2)
     node="vega"
+		gpu="gfx900"
     ;;
 	*)
 		echo "unknown host node" $host
@@ -179,8 +181,8 @@ if [ $mode = "build" ]; then
 			echo "cp $node.dlbench.hsaco dlbench.hsaco"
 			cp $node.dlbench.hsaco dlbench.hsaco
 		else
-#			${CLOC_PATH}/cloc.sh -mcpu gfx803  -clopts "-I. ${CL_PARAM_DEFS}" -opt 2 dlbench.cl
-			${CLOC_PATH}/cloc.sh -mcpu gfx900  -clopts "-I. ${CL_PARAM_DEFS}" -opt 1 dlbench.cl
+			${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt 2 dlbench.cl
+#			${CLOC_PATH}/cloc.sh -mcpu gfx900  -clopts "-I. ${CL_PARAM_DEFS}" -opt 1 dlbench.cl
 		fi
 	fi
 
