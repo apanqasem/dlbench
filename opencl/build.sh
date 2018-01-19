@@ -140,10 +140,12 @@ case $host in
 	paryzen1|t1|ROCNREDLINE)
 		node="fiji"
 		gpu="gfx803"
+		opt_level=2
 		;;
   paripp2)
     node="vega"
 		gpu="gfx900"
+		opt_level=1  # bug in cloc.sh; doesn't build at opt_level 2
     ;;
 	*)
 		echo "unknown host node" $host
@@ -185,10 +187,9 @@ if [ $mode = "build" ]; then
 			cp $node.dlbench.hsaco dlbench.hsaco
 		else
 			if [ $debug ]; then 
-				echo "${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt 2 dlbench.cl"
+				echo "${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt ${opt_level} dlbench.cl"
 			fi
-				${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt 2 dlbench.cl
-#			${CLOC_PATH}/cloc.sh -mcpu gfx900  -clopts "-I. ${CL_PARAM_DEFS}" -opt 1 dlbench.cl
+			${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt ${opt_level}  dlbench.cl
 		fi
 	fi
 

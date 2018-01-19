@@ -807,12 +807,11 @@ int main(int argc, char *argv[]) {
     float dataGB = (float) data_transfer / 1e+09;
 
     // FIJI
-    unsigned long FLOP = ((NUM_IMGS * 30) * PIXELS_PER_IMG) + (16 * PIXELS_PER_IMG);
-
+    double FLOP = ((NUM_IMGS * 30) * PIXELS_PER_IMG) + (16 * PIXELS_PER_IMG);
     // adjust for unroll factor 
-    FLOP = FLOP + ((KERNEL_ITERS - 1) * NUM_IMGS * PIXELS_PER_IMG);
-    float gFLOP = (float) FLOP / 1e+09;
-
+    FLOP = FLOP + ((float) (ITERS - 1) * (float) NUM_IMGS * (float) PIXELS_PER_IMG);
+    double gFLOP = FLOP / 1e+09;
+    
     float throughput = gFLOP /secs;
     float throughput_with_copy = gFLOP /(secs + (cp_to_dev_time/1000000));
     // unsigned FLOP = 28 * PIXELS_PER_IMG * NUM_IMGS;
