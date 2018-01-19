@@ -53,147 +53,99 @@
 #define DEVICE
 #endif
 
-
 typedef struct pixel_type {
   DATA_ITEM_TYPE r;
   DATA_ITEM_TYPE g;
   DATA_ITEM_TYPE b;
-#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 4)
   DATA_ITEM_TYPE x;
-  #endif
-#if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#endif
+#if (MEM >= 5)
     DATA_ITEM_TYPE a;
 #endif
-#if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 6)
     DATA_ITEM_TYPE c;
 #endif
-#if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 7)
     DATA_ITEM_TYPE d;
 #endif
-#if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 8)
     DATA_ITEM_TYPE e;
 #endif
-#if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 9)
     DATA_ITEM_TYPE f;
 #endif
-#if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 10)
     DATA_ITEM_TYPE h;
 #endif
-#if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 11)
     DATA_ITEM_TYPE j;
 #endif
-#if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 12)
     DATA_ITEM_TYPE k;
 #endif
-#if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 13)
     DATA_ITEM_TYPE l;
 #endif
-#if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 14)
     DATA_ITEM_TYPE m;
 #endif
-#if defined MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 15)
     DATA_ITEM_TYPE n;
 #endif
-#if defined MEM16 || MEM17 || MEM18
+#if (MEM >= 16)
     DATA_ITEM_TYPE o;
 #endif
-#if defined MEM17 || MEM18
+#if (MEM >= 17)
     DATA_ITEM_TYPE p;
 #endif
-#if defined MEM18
+#if (MEM >= 18)
     DATA_ITEM_TYPE q;
 #endif
   } pixel;
 
-#ifdef MEM2
+
+#if (MEM == 2)
 #define FIELDS 3
-#endif
-#ifdef MEM3 
-#define FIELDS 3
-#endif
-#ifdef MEM4 
-#define FIELDS 4
-#endif
-#ifdef MEM5 
-#define FIELDS 5
-#endif
-#ifdef MEM6 
-#define FIELDS 6
-#endif
-#ifdef MEM7 
-#define FIELDS 7
-#endif
-#ifdef MEM8 
-#define FIELDS 8
-#endif
-#ifdef MEM9 
-#define FIELDS 9
-#endif
-#ifdef MEM10 
-#define FIELDS 10
-#endif
-#ifdef MEM11 
-#define FIELDS 11
-#endif
-#ifdef MEM12 
-#define FIELDS 12
-#endif
-#ifdef MEM13 
-#define FIELDS 13
-#endif
-#ifdef MEM14 
-#define FIELDS 14
-#endif
-#ifdef MEM15 
-#define FIELDS 15
-#endif
-#ifdef MEM16 
-#define FIELDS 16
-#endif
-#ifdef MEM17 
-#define FIELDS 17
-#endif
-#ifdef MEM18 
-#define FIELDS 18
+#else 
+#define FIELDS MEM
 #endif
 
 typedef struct img_type {
   DATA_ITEM_TYPE *r;
   DATA_ITEM_TYPE *g;
-#if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-    DATA_ITEM_TYPE *b;
-#endif
-#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+  DATA_ITEM_TYPE *b;
+#if (MEM >= 4) 
     DATA_ITEM_TYPE *x;
 #endif
-#if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 5) 
     DATA_ITEM_TYPE *a;
 #endif
-#if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 6) 
     DATA_ITEM_TYPE *c;
 #endif
-#if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 7) 
     DATA_ITEM_TYPE *d;
 #endif
-#if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 8) 
     DATA_ITEM_TYPE *e;
 #endif
-#if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 9) 
     DATA_ITEM_TYPE *f;
 #endif
-#if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 10) 
     DATA_ITEM_TYPE *h;
 #endif
-#if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 11) 
     DATA_ITEM_TYPE *j;
 #endif
-#if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 12) 
     DATA_ITEM_TYPE *k;
 #endif
-#if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 13) 
     DATA_ITEM_TYPE *l;
 #endif
-#if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 14) 
     DATA_ITEM_TYPE *m;
 #endif
 } img;

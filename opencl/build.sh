@@ -76,6 +76,9 @@ while [ $# -gt 0 ]; do
     -v|--verbose)
       verbose="VERBOSE"
 			;;
+    -g|--debug)
+      debug="true"
+			;;
     -b|--brig)
       module_type="BRIG"
             ;;
@@ -154,11 +157,11 @@ if [ $((${pixels} % ${threads})) -ne 0 ]; then
 		echo "Number of threads must divide number of pixels: pixels = ${pixels}, threads = ${threads}" 
 		exit 0
 fi
-C_PARAM_DEFS="-D${agent} -D${alloc} -D${copy} -D${layout} -D${verbose} -DMEM${mem} -DIMGS=${size}\
+C_PARAM_DEFS="-D${agent} -D${alloc} -D${copy} -D${layout} -D${verbose} -DMEM=${mem} -DIMGS=${size}\
               -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads} -DSWEEP_VAL=${sweeps} -DTILESIZE=${tile}\
               -DCOARSENFACTOR=${coarsen} -DINTENSITY=${intensity} -D${pattern} -DKITERS=${kiters} -D${module_type}"
 
-CL_PARAM_DEFS="-DTILESIZE=${tile} -DCOARSENFACTOR=${coarsen} -DMEM${mem}\
+CL_PARAM_DEFS="-DTILESIZE=${tile} -DCOARSENFACTOR=${coarsen} -DMEM=${mem}\
                -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads} -DSWEEP_VAL=${sweeps} -DINTENSITY=${intensity}"
 
 # build from C source 
@@ -181,7 +184,10 @@ if [ $mode = "build" ]; then
 			echo "cp $node.dlbench.hsaco dlbench.hsaco"
 			cp $node.dlbench.hsaco dlbench.hsaco
 		else
-			${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt 2 dlbench.cl
+			if [ $debug ]; then 
+				echo "${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt 2 dlbench.cl"
+			fi
+				${CLOC_PATH}/cloc.sh -mcpu ${gpu}  -clopts "-I. ${CL_PARAM_DEFS}" -opt 2 dlbench.cl
 #			${CLOC_PATH}/cloc.sh -mcpu gfx900  -clopts "-I. ${CL_PARAM_DEFS}" -opt 1 dlbench.cl
 		fi
 	fi

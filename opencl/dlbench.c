@@ -212,20 +212,26 @@ int main(int argc, char *argv[]) {
 	for (int k = j; k < j + PIXELS_PER_IMG; k++) {
 	  src_images_host[i][k].r = (DATA_ITEM_TYPE)k;
 	  src_images_host[i][k].g = k * 10.0f;
-#if defined MEM4 || MEM6 || MEM8 || MEM10 
 	  src_images_host[i][k].b = (DATA_ITEM_TYPE)k;
+#if (MEM >= 4) 
 	  src_images_host[i][k].x = k * 10.0f;
 #endif
-#if defined MEM6 || MEM8 || MEM10 
+#if (MEM >= 5)
 	  src_images_host[i][k].a = (DATA_ITEM_TYPE)k;
+#endif
+#if (MEM >= 6)
 	  src_images_host[i][k].c = k * 10.0f;
 #endif
-#if defined MEM8 || MEM10 
+#if (MEM >= 7)
 	  src_images_host[i][k].d = (DATA_ITEM_TYPE)k;
+#endif
+#if (MEM >= 8)
 	  src_images_host[i][k].e = k * 10.0f;
 #endif
-#if defined MEM10 
+#if (MEM >= 9)
 	  src_images_host[i][k].f = (DATA_ITEM_TYPE)k;
+#endif
+#if (MEM >= 10)
 	  src_images_host[i][k].h = k * 10.0f;
 #endif
 	}
@@ -785,38 +791,52 @@ int main(int argc, char *argv[]) {
     }
 #endif
 #endif
-    /*   
-     * Calculate performance metrics                                                                   
-     */
-    #define STREAMS 8
-    unsigned long dataMB = (NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * STREAMS)/(1024 * 1024);
-    unsigned FLOPS = 28 * PIXELS_PER_IMG * NUM_IMGS;
 #ifdef HOST
     double secs = t_host/1000000;
 #else 
-    double secs = t/1000000;
+    double secs = (double) t/1000000;
     double secs_copy = cp_to_host_time/1000000;
 #endif
 
+    /*   
+     * Calculate performance metrics                                                                   
+     */
+    unsigned long input_data = NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS; 
+    unsigned long output_data = NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS; 
+    unsigned long data_transfer = input_data + output_data; 
+    float dataGB = (float) data_transfer / 1e+09;
+
+    // FIJI
+    unsigned long FLOP = ((NUM_IMGS * 30) * PIXELS_PER_IMG) + (16 * PIXELS_PER_IMG);
+
+    // adjust for unroll factor 
+    FLOP = FLOP + ((KERNEL_ITERS - 1) * NUM_IMGS * PIXELS_PER_IMG);
+    float gFLOP = (float) FLOP / 1e+09;
+
+    float throughput = gFLOP /secs;
+    float throughput_with_copy = gFLOP /(secs + (cp_to_dev_time/1000000));
+    // unsigned FLOP = 28 * PIXELS_PER_IMG * NUM_IMGS;
+
 #ifdef VERBOSE
-    fprintf(stdout, "Kernel execution time %3.2f ms\n", t_host/1000);
+    fprintf(stdout, "Kernel execution time %3.2f ms\n", t/1000);
     fprintf(stdout, "Copy to device time: %3.2f ms\n", cp_to_dev_time/1000);
     fprintf(stdout, "Copy to host time: %3.2f ms\n", cp_to_host_time/1000);
-    fprintf(stdout, "Attained bandwidth: %3.2f MB/s\n", dataMB/secs);
+    fprintf(stdout, "Bandwidth: %3.2f GB/s\n", dataGB/ (float) secs);
+    fprintf(stdout, "FLOP/s: %3.2f GB/s\n", throughput);
+    fprintf(stdout, "Arithmetic intensity: %3.2f\n", FLOP/((float)data_transfer));
 #else
 #ifdef HOST
     fprintf(stdout, "%3.2f\n", t_host/1000);
 #else 
     fprintf(stdout, "%3.2f", t/1000); 
-    //    fprintf(stdout, "%3.2f,%3.2f", t/1000, ((float) FLOPS/(t/1000000))/1000000000);
-    //    fprintf(stdout, "%3.2f,", (cp_to_dev_time + cp_to_host_time)/1000);
 #if defined COARSE || FINE
-    fprintf(stdout, ",%3.2f\n", (NUM_IMGS * PIXELS_PER_IMG)/t);
+   fprintf(stdout, ",%3.2f\n", throughput);
 #else
     fprintf(stdout, ",%3.2f,%3.2f,%3.2f\n",
 	    cp_to_dev_time/1000,
-	    (NUM_IMGS * PIXELS_PER_IMG)/t,
-	    (NUM_IMGS * PIXELS_PER_IMG)/(t + cp_to_dev_time));
+	    throughput, 
+	    throughput_with_copy);
+
 #endif
 
 #endif

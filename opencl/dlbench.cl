@@ -1,11 +1,13 @@
 #include "dlbench.h"
 
-__kernel void grayscale_aos(__global pixel *src_images, __global pixel *dst_images, int num_imgs) {
+__kernel void grayscale_aos(__global pixel *src_images, 
+			    __global pixel *dst_images, 
+			    int num_imgs) {
 
   size_t i = get_local_id(0); 
   size_t group_id = get_group_id(0);
 
-#if 0
+#if 1
   int sets = (group_id / SPARSITY);    // sets processed
   int set_offset = WORKGROUP * SPARSITY * sets;
   i = (i * SPARSITY) + (group_id - SPARSITY * sets) + set_offset;
@@ -30,57 +32,56 @@ __kernel void grayscale_aos(__global pixel *src_images, __global pixel *dst_imag
 	    v0 = v0 + c1;
 	    v1 = v0 - c2;
 	  }
+	  dst_images[i + j + k].r = (src_images[i + j + k].r * v0 
+				     - src_images[i + j + k].g * F1 * v1);
+	  dst_images[i + j + k].g  = (src_images[i + j + k].g * F1 * (1.0f - v1) 
+				      - src_images[i + j + k].r);
 	  
-	  dst_images[i + j + k].r = (src_images[i + j + k].r * v0 - src_images[i + j + k].g * F1 * v1);
-	  dst_images[i + j + k].g  = (src_images[i + j + k].g * F1 * (1.0f - v1) - src_images[i + j + k].r);
-	  
-#if defined MEM2 || MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
 	  dst_images[i + j + k].b = v0;
-#endif
-#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 4)
 	  dst_images[i + j + k].x = v1;
 #endif
-#if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].a = v0; 
+#if (MEM >= 5)
+	  dst_images[i + j + k].a = v0;
 #endif
-#if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].c  = v1; 
+#if (MEM >= 6)
+	  dst_images[i + j + k].c  = v1;
 #endif
-#if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 7)
 	  dst_images[i + j + k].d = v0;
 #endif
-#if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 8)
 	  dst_images[i + j + k].e = v1;
 #endif
-#if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].f = v0; 
+#if (MEM >= 9)
+	  dst_images[i + j + k].f = v0;
 #endif
-#if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].h  = v1; 
+#if (MEM >= 10)
+	  dst_images[i + j + k].h  = v1;
 #endif
-#if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].j = v0; 
+#if (MEM >= 11)
+	  dst_images[i + j + k].j = v0;
 #endif
-#if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].k  = v1; 
+#if (MEM >= 12)
+	  dst_images[i + j + k].k  = v1;
 #endif
-#if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].l = v0; 
+#if (MEM >= 13)
+	  dst_images[i + j + k].l = v0;
 #endif
-#if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].m  = v1; 
+#if (MEM >= 14)
+	  dst_images[i + j + k].m  = v1;
 #endif
-#if defined MEM15 || MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].n  = v1; 
+#if (MEM >= 15)
+	  dst_images[i + j + k].n  = v1;
 #endif
-#if defined MEM16 || MEM17 || MEM18
-	  dst_images[i + j + k].o  = v1; 
+#if (MEM >= 16)
+	  dst_images[i + j + k].o  = v1;
 #endif
-#if defined MEM17 || MEM18
-	  dst_images[i + j + k].p  = v1; 
+#if (MEM >= 17)
+	  dst_images[i + j + k].p  = v1;
 #endif
-#if defined MEM18
-	  dst_images[i + j + k].q  = v1; 
+#if (MEM >= 18)
+	  dst_images[i + j + k].q  = v1;
 #endif
 	}
       }
@@ -131,7 +132,7 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TY
 	d_r[i + k + j] = (r[i + k + j] * v0 - g[i + k + j] * F1 * v1);
 	d_g[i + k + j] = (g[i + k + j] * F1 * (1.0f - v1) - r[i + k + j]);
 
-#if defined MEM2 || MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM == 2 || MEM == 3) 
 	d_b[i + k + j] = v0;
 #endif
       }
