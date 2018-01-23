@@ -67,6 +67,7 @@ void *host_grayscale_aos(void *p) {
 
 
 void *host_grayscale_da_pixel(void *p) {
+#if 0
   DATA_ITEM_TYPE *r = ((args_da *) p)->r;
   DATA_ITEM_TYPE *g = ((args_da *) p)->g;
   DATA_ITEM_TYPE *b = ((args_da *) p)->b;
@@ -95,12 +96,13 @@ void *host_grayscale_da_pixel(void *p) {
       d_b[i + j] = v0;
       d_x[i + j] = v1;
     }
+#endif
   return NULL;
 }
 
 
 void *host_grayscale_da(void *p) {
-
+#if 0
   DATA_ITEM_TYPE *r = ((args_da *) p)->r;
   DATA_ITEM_TYPE *g = ((args_da *) p)->g;
   DATA_ITEM_TYPE *b = ((args_da *) p)->b;
@@ -123,5 +125,6 @@ void *host_grayscale_da(void *p) {
         d_x[i] = gs;
       }
   }
+#endif
   return NULL;
 }

@@ -362,9 +362,12 @@ void assign_gcn_args_da_new(gcn_da_arg *args,
       args[i].r = r[i];
       args[i].g = g[i];
       args[i].b = b[i];
-      args[i].d_r = d_r[i];
-      args[i].d_g = d_g[i];
-      args[i].d_b = d_b[i];
+      args[i].d_r = dev_d_r[i];
+      args[i].d_g = dev_d_g[i];
+      args[i].d_b = dev_d_b[i];
+      /* args[i].d_r = d_r[i]; */
+      /* args[i].d_g = d_g[i]; */
+      /* args[i].d_b = d_b[i]; */
 #endif
     args[i].num_imgs = objs_per_device;
   }
@@ -1128,294 +1131,295 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
     hsa_status_t err;
     hsa_signal_value_t value;
     int i = 0;
-  if (placement == PLACE_DEVMEM) {
     hsa_signal_t copy_sig[gpu_agents_used];
     for (i = 0; i < gpu_agents_used; i++) {
       if (i == gpu_agents_used - 1) {
 	objs_per_device = objs_per_device + trailing_objs;
 	segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
       }
-      dev_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
-      dev_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
-      dev_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
-       
- #if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_x[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_a[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_c[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_e[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_f[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_h[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_j[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_k[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_l[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_m[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM15 || MEM16 || MEM17 || MEM18
-       dev_n[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM16 || MEM17 || MEM18
-       dev_o[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM17 || MEM18
-       dev_p[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM18
-       dev_q[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
-
-       dev_d_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
-       dev_d_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
-       dev_d_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      if (placement == PLACE_DEVMEM) {
+	dev_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+	dev_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+	dev_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+	
 #if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_x[i] =  (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_a[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_c[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_d[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_e[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_f[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_h[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM11 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_j[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_k[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_l[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_m[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM15 || MEM16 || MEM17 || MEM18
-       dev_d_n[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM16 || MEM17 || MEM18
-       dev_d_o[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM17 || MEM18
-       dev_d_p[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
- #if defined MEM18
-       dev_d_q[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
- #endif
-
-
-       if (!dev_r[i] || !dev_g[i] || !dev_b[i])  {
-	 // || !dev_g[i] || !dev_d_r[i] 
-	 //	   || !dev_d_g[i] || !dev_d_b[i] || !dev_d_x[i]) {
-	 printf("Unable to malloc discrete arrays to device memory. Exiting\n");
-	 exit(0);
-       }
-
-       err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-       check(Creating a HSA signal, err);
-       hsa_amd_memory_async_copy(dev_r[i], gpu_agents[i], r[i], gpu_agents[i],
-				 segment_size, 0, NULL, copy_sig[i]);
-       value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				       HSA_WAIT_STATE_ACTIVE);
-       err=hsa_signal_destroy(copy_sig[i]);
-
-       err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-       check(Creating a HSA signal, err);
-       hsa_amd_memory_async_copy(dev_g[i], gpu_agents[i], g[i], gpu_agents[i],
-				 segment_size, 0, NULL, copy_sig[i]);
-       value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				       HSA_WAIT_STATE_ACTIVE);
-       err=hsa_signal_destroy(copy_sig[i]);
-
-       // #if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-       err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-       check(Creating a HSA signal, err);
-       hsa_amd_memory_async_copy(dev_b[i], gpu_agents[i], b[i], gpu_agents[i],
-				 segment_size, 0, NULL, copy_sig[i]);
-       value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				       HSA_WAIT_STATE_ACTIVE);
-       err=hsa_signal_destroy(copy_sig[i]);
-       // #endif
-
-#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18     
-       err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_x[i], gpu_agents[i], x[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	dev_x[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 #endif
-
 #if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_a[i], gpu_agents[i], a[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	dev_a[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 #endif
+#if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_c[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_d[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_e[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_f[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_h[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_j[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_k[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_l[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	dev_m[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM15 || MEM16 || MEM17 || MEM18
+	dev_n[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM16 || MEM17 || MEM18
+	dev_o[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM17 || MEM18
+	dev_p[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM18
+	dev_q[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+      }
+      dev_d_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      dev_d_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      dev_d_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_x[i] =  (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_a[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_c[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_d[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_e[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_f[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+ #if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_h[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM11 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_j[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_k[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_l[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_m[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM15 || MEM16 || MEM17 || MEM18
+      dev_d_n[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM16 || MEM17 || MEM18
+      dev_d_o[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM17 || MEM18
+      dev_d_p[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+#if defined MEM18
+      dev_d_q[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#endif
+    
+      if (placement == PLACE_DEVMEM) {
       
+	if (!dev_r[i] || !dev_g[i] || !dev_b[i])  {
+	  // || !dev_g[i] || !dev_d_r[i] 
+	  //	   || !dev_d_g[i] || !dev_d_b[i] || !dev_d_x[i]) {
+	  printf("Unable to malloc discrete arrays to device memory. Exiting\n");
+	  exit(0);
+	}
+      
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_r[i], gpu_agents[i], r[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+	
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_g[i], gpu_agents[i], g[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+	
+	// #if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_b[i], gpu_agents[i], b[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+	// #endif
+	
+#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18     
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_x[i], gpu_agents[i], x[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+#endif
+	
+#if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_a[i], gpu_agents[i], a[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+#endif
+	
 #if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_c[i], gpu_agents[i], c[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_c[i], gpu_agents[i], c[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-      
+	
 #if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_d[i], gpu_agents[i], d[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_d[i], gpu_agents[i], d[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-      
+	
 #if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_e[i], gpu_agents[i], e[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_e[i], gpu_agents[i], e[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-
+	
 #if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_f[i], gpu_agents[i], f[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_f[i], gpu_agents[i], f[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-      
+	
 #if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_h[i], gpu_agents[i], h[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_h[i], gpu_agents[i], h[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-      
+	
 #if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_j[i], gpu_agents[i], j[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_j[i], gpu_agents[i], j[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-      
+	
 #if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_k[i], gpu_agents[i], k[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_k[i], gpu_agents[i], k[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-
+	
 #if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_l[i], gpu_agents[i], l[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_l[i], gpu_agents[i], l[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-      
+	
 #if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_m[i], gpu_agents[i], m[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_m[i], gpu_agents[i], m[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
 #if defined MEM15 || MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_n[i], gpu_agents[i], n[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_n[i], gpu_agents[i], n[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
 #if defined MEM16 || MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_o[i], gpu_agents[i], o[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_o[i], gpu_agents[i], o[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
 #if defined MEM17 || MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_p[i], gpu_agents[i], p[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_p[i], gpu_agents[i], p[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
 #if defined MEM18      
-      err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-      check(Creating a HSA signal, err);
-      hsa_amd_memory_async_copy(dev_q[i], gpu_agents[i], q[i], gpu_agents[i],
-				segment_size, 0, NULL, copy_sig[i]);
-      value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				      HSA_WAIT_STATE_ACTIVE);
-      err=hsa_signal_destroy(copy_sig[i]);
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_q[i], gpu_agents[i], q[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
 #endif
+      }
     }
-  }
-  return;
+    return;
 }
 
  

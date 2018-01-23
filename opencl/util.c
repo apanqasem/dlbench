@@ -149,6 +149,7 @@ void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, D
 #ifdef DEVICE 
   for (int j = 0; j < device_end * PIXELS_PER_IMG; j += PIXELS_PER_IMG)
     for (unsigned int i = j; i < j + PIXELS_PER_IMG; i++) {
+#if 0
       DATA_ITEM_TYPE v0 = 0.0f;
       DATA_ITEM_TYPE v1 = 0.0f;
       for (int k = 0; k < ITERS; k++) {
@@ -169,6 +170,9 @@ void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, D
 	  printf("%d %f %f\n", i, exp_result, d_r[i]);
 #endif
       }
+#endif
+      if (r[i] != d_r[i]) 
+	errors = 1;
     }
   fprintf(stderr, "%s\n", (errors > 0 ? "FAILED (GPU)" : "PASSED (GPU)"));
   #endif 

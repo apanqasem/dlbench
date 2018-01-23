@@ -4,8 +4,9 @@ __kernel void grayscale_aos(__global pixel *src_images,
 			    __global pixel *dst_images, 
 			    int num_imgs) {
 
-  size_t i = get_local_id(0); 
-  size_t group_id = get_group_id(0);
+  //  size_t i = get_local_id(0); 
+  //  size_t group_id = get_group_id(0);
+  size_t i = get_global_id(0); 
 
 #if 0
   int sets = (group_id / SPARSITY);    // sets processed
@@ -89,15 +90,12 @@ __kernel void grayscale_aos(__global pixel *src_images,
 }
     
 __kernel void copy_da(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *d_r, 
-		      __global DATA_ITEM_TYPE *dev_r, __global DATA_ITEM_TYPE *dev_d_r, 
-
 		      int num_imgs) {
 
   const size_t i = get_local_id(0);
   d_r[i] = r[i];
   
 }
-#if 0
 __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *g, 
 			       __global DATA_ITEM_TYPE *b, 
 			       __global DATA_ITEM_TYPE *d_r, 
@@ -105,8 +103,9 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TY
 			       __global DATA_ITEM_TYPE *d_b, 
 			       int num_imgs) {
 
-  size_t i = get_local_id(0);
-  size_t group_id = get_group_id(0);
+  //  size_t i = get_local_id(0);
+  //  size_t group_id = get_group_id(0);
+  const size_t i = get_global_id(0);
 
 #if 0
   int sets = (group_id / SPARSITY);    // sets processed 
@@ -119,19 +118,18 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TY
 
   for (int p = 0; p < SWEEPS; p++) {
     for (int j = 0; j < num_imgs * PIXELS_PER_IMG; j = j + PIXELS_PER_IMG) {
-      //      for (int u = 0; u < CF; u++) {
       for (int k = 0; k < PIXELS_PER_IMG/THREADS; k++) {
 
-	//	  int uf = 0;// u * PIXELS_PER_IMG/CF; 
-	/* DATA_ITEM_TYPE r_val = r[i + uf + j]; */
-	/* DATA_ITEM_TYPE g_val = g[i + uf + j]; */
-	/* DATA_ITEM_TYPE b_val = b[i + uf + j]; */
+	//   d_r[i + k + j] = r[i + k + j];
 	DATA_ITEM_TYPE v0 = 0.0f;
 	DATA_ITEM_TYPE v1 = 0.0f;
 
-	DATA_ITEM_TYPE c1 = (r[i + k + j] / g[i + k + j] + (F0 + F1 * F1) *
-			     b[i + k + j]) / (F1 * b[i + k + j]);
-	DATA_ITEM_TYPE c2 = F1 * b[i + k + j];
+	/* DATA_ITEM_TYPE c1 = (r[i + k + j] / g[i + k + j] + (F0 + F1 * F1) * */
+	/* 		     b[i + k + j]) / (F1 * b[i + k + j]); */
+	/* DATA_ITEM_TYPE c2 = F1 * b[i + k + j]; */
+
+	DATA_ITEM_TYPE c1 = r[i + k + j] / g[i + k + j] + (F0 + F1 * F1);
+	DATA_ITEM_TYPE c2 = F1;
 
 	//#pragma unroll UNROLL
 	for (int k = 0; k < ITERS; k++) {
@@ -142,14 +140,14 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TY
 	d_r[i + k + j] = (r[i + k + j] * v0 - g[i + k + j] * F1 * v1);
 	d_g[i + k + j] = (g[i + k + j] * F1 * (1.0f - v1) - r[i + k + j]);
 
-#if (MEM == 2 || MEM == 3) 
+#if (MEM == 2 || MEM == 3)
 	d_b[i + k + j] = v0;
 #endif
       }
     }
-  } 
+  }
 }
-#endif
+
 #if 0
 __kernel void grayscale_da(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *g, 
 			   __global DATA_ITEM_TYPE *b, __global DATA_ITEM_TYPE *x,  

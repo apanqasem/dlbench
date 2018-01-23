@@ -238,6 +238,17 @@ void assign_gcn_args_copy_da(gcn_da_arg *args,
 			     int gpu_agents_used, int objs);
 
 
+void assign_gcn_args_da_new(gcn_da_arg *args, 
+			 DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
+			 DATA_ITEM_TYPE **b, 
+			 DATA_ITEM_TYPE **d_r, DATA_ITEM_TYPE **d_g, 
+			 DATA_ITEM_TYPE **d_b,
+			 DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_g, 
+			 DATA_ITEM_TYPE **dev_b, 
+			 DATA_ITEM_TYPE **dev_d_r, DATA_ITEM_TYPE **dev_d_g, 
+			 DATA_ITEM_TYPE **dev_d_b, 
+			    int gpu_agents_used, int objs);
+
 void assign_gcn_args_da(gcn_da_arg *args, 
 			 DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
 			 DATA_ITEM_TYPE **b, DATA_ITEM_TYPE **x, 
