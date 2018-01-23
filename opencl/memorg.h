@@ -232,6 +232,12 @@ void assign_gcn_args_aos(gcn_generic_arg *args, pixel **src_images, pixel **dst_
 			  pixel **dev_src_images, pixel **dev_dst_images, 
 			  int gpu_agents_used, int objs); 
 
+void assign_gcn_args_copy_da(gcn_da_arg *args, 
+			     DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **d_r,
+			     DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_d_r,
+			     int gpu_agents_used, int objs);
+
+
 void assign_gcn_args_da(gcn_da_arg *args, 
 			 DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
 			 DATA_ITEM_TYPE **b, DATA_ITEM_TYPE **x, 

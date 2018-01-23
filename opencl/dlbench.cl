@@ -7,7 +7,7 @@ __kernel void grayscale_aos(__global pixel *src_images,
   size_t i = get_local_id(0); 
   size_t group_id = get_group_id(0);
 
-#if 1
+#if 0
   int sets = (group_id / SPARSITY);    // sets processed
   int set_offset = WORKGROUP * SPARSITY * sets;
   i = (i * SPARSITY) + (group_id - SPARSITY * sets) + set_offset;
@@ -88,6 +88,16 @@ __kernel void grayscale_aos(__global pixel *src_images,
     }
 }
     
+__kernel void copy_da(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *d_r, 
+		      __global DATA_ITEM_TYPE *dev_r, __global DATA_ITEM_TYPE *dev_d_r, 
+
+		      int num_imgs) {
+
+  const size_t i = get_local_id(0);
+  d_r[i] = r[i];
+  
+}
+#if 0
 __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *g, 
 			       __global DATA_ITEM_TYPE *b, 
 			       __global DATA_ITEM_TYPE *d_r, 
@@ -98,7 +108,7 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TY
   size_t i = get_local_id(0);
   size_t group_id = get_group_id(0);
 
-#if 1  
+#if 0
   int sets = (group_id / SPARSITY);    // sets processed 
   int set_offset = WORKGROUP * SPARSITY * sets;
   i = (i * SPARSITY) + (group_id - SPARSITY * sets) + set_offset;
@@ -139,6 +149,7 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TY
     }
   } 
 }
+#endif
 #if 0
 __kernel void grayscale_da(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *g, 
 			   __global DATA_ITEM_TYPE *b, __global DATA_ITEM_TYPE *x,  

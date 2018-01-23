@@ -309,6 +309,30 @@ void assign_gcn_args_ca(gcn_generic_arg *args, DATA_ITEM_TYPE **src_images, DATA
   objs_per_device =  NUM_IMGS / gpu_agents_used;
 }
 
+void assign_gcn_args_copy_da(gcn_da_arg *args, 
+			     DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **d_r,
+			     DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_d_r,
+			     int gpu_agents_used, int objs) {
+  int i = 0;
+  unsigned objs_per_device = objs / gpu_agents_used; 
+  int trailing_objs = objs % gpu_agents_used;
+  
+  for (i = 0; i < gpu_agents_used; i++) {
+    if (i == gpu_agents_used - 1)
+      objs_per_device = objs_per_device + trailing_objs;
+    memset(&args[i], 0, sizeof(args[i]));
+#ifdef DEVMEM
+      args[i].r = dev_r[i];
+      args[i].d_r = dev_d_r[i];
+#else
+      args[i].r = r[i];
+      args[i].d_r = d_r[i];
+#endif
+    args[i].num_imgs = objs_per_device;
+  }
+  objs_per_device =  NUM_IMGS / gpu_agents_used;
+}
+
 void assign_gcn_args_da_new(gcn_da_arg *args, 
 			 DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
 			 DATA_ITEM_TYPE **b, 

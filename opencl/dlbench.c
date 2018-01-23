@@ -105,7 +105,9 @@ int main(int argc, char *argv[]) {
 				      gpu_agents[i], 0, &symbols[i]);
 #endif
 #ifdef DA
-      err = hsa_executable_get_symbol(executables[i], NULL, "grayscale_da_new", 
+      //      err = hsa_executable_get_symbol(executables[i], NULL, "grayscale_da_new", 
+      //				      gpu_agents[i], 0, &symbols[i]);
+      err = hsa_executable_get_symbol(executables[i], NULL, "copy_da", 
 				      gpu_agents[i], 0, &symbols[i]);
 #endif
 #ifdef SOA
@@ -573,12 +575,15 @@ int main(int argc, char *argv[]) {
 			dev_d_j, dev_d_k, dev_d_l, dev_d_m, dev_d_n, dev_d_o, dev_d_p, dev_d_q, 
 			gpu_agents_used, objs);
 #endif
-    assign_gcn_args_da_new(args, 
-			   r, g, b,
-			   d_r, d_g, d_b, 
-			   dev_r,dev_g,dev_b,
-			   dev_d_r,dev_d_g,dev_d_b,
-			   gpu_agents_used, objs);
+    /* assign_gcn_args_da_new(args,  */
+    /* 			   r, g, b, */
+    /* 			   d_r, d_g, d_b,  */
+    /* 			   dev_r,dev_g,dev_b, */
+    /* 			   dev_d_r,dev_d_g,dev_d_b, */
+    /* 			   gpu_agents_used, objs); */
+    assign_gcn_args_copy_da(args, 
+			    r, d_r, dev_r, dev_d_r,
+			    gpu_agents_used, objs);
 #endif
 #ifdef CA
     gcn_generic_arg args[gpu_agents_used];
@@ -763,11 +768,11 @@ int main(int argc, char *argv[]) {
 
 #ifdef DEVICE 
 #ifdef AOS
-    for (i = 0; i < gpu_agents_used; i++) {
-      if (i == gpu_agents_used - 1)
-	items_per_device = items_per_device + trailing_items;
-      check_results_aos(src_images[i], dst_images[i], host_start, items_per_device);
-    }
+    /* for (i = 0; i < gpu_agents_used; i++) { */
+    /*   if (i == gpu_agents_used - 1) */
+    /* 	items_per_device = items_per_device + trailing_items; */
+    /*   check_results_aos(src_images[i], dst_images[i], host_start, items_per_device); */
+    /* } */
 #endif
 #ifdef SOA
     for (i = 0; i < gpu_agents_used; i++) {
