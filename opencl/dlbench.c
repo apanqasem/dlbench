@@ -23,6 +23,7 @@ if (status != HSA_STATUS_SUCCESS) { \
     exit(1); \
 } 
 
+double tKernel;
 
 int main(int argc, char *argv[]) {
     int gpu_agents_used;
@@ -364,6 +365,8 @@ int main(int argc, char *argv[]) {
 
 #ifdef DA
     DATA_ITEM_TYPE *r[gpu_agents_used];
+    DATA_ITEM_TYPE *r_copy[gpu_agents_used];
+
     DATA_ITEM_TYPE *g[gpu_agents_used];
     DATA_ITEM_TYPE *b[gpu_agents_used];
     DATA_ITEM_TYPE *x[gpu_agents_used];
@@ -456,8 +459,14 @@ int main(int argc, char *argv[]) {
     initialize_da(r, g, b, x, 
 		  a, c, d, e, f, h, j, k, l, m, n, o, p, q,
 		gpu_agents_used, objs, obj_size, placement);
+    for (i = 0; i < gpu_agents_used; i++) {
+      for (int j = 0; j < objs/gpu_agents_used * PIXELS_PER_IMG; j += PIXELS_PER_IMG)
+	for (int k = j; k < j + PIXELS_PER_IMG; k++) {
+	  g[i][k] = r[i][k];
+	}
+    }
 
-
+    
 #endif
     //#ifdef DEVMEM
     cp_to_dev_time = mysecond();
@@ -576,10 +585,10 @@ int main(int argc, char *argv[]) {
 			gpu_agents_used, objs);
 #endif
     assign_gcn_args_da_new(args,
-    			   r, g, b,
-    			   d_r, d_g, d_b,
-    			   dev_r,dev_g,dev_b,
-    			   dev_d_r,dev_d_g,dev_d_b,
+    			   r,
+    			   d_r,
+    			   dev_r,
+    			   dev_d_r,
     			   gpu_agents_used, objs);
     /* assign_gcn_args_copy_da(args,  */
     /* 			    r, d_r, dev_r, dev_d_r, */
@@ -627,6 +636,7 @@ int main(int argc, char *argv[]) {
 			       NULL, NULL, UINT32_MAX, UINT32_MAX, &queues[i]);
 	check(Creating queues, err);
       }
+      tKernel = mysecond();
       // Obtain queue write indices.
       uint64_t indices[gpu_agents_used];
       for (i = 0; i < gpu_agents_used; i++) {
@@ -667,13 +677,13 @@ int main(int argc, char *argv[]) {
 	hsa_signal_store_relaxed(queues[i]->doorbell_signal, indices[i]);
 	check(Dispatching the kernel, err);
       }
-      t = mysecond();
       // Wait on the dispatch completion signal until the kernel is finished.
       for (i = 0; i < gpu_agents_used; i++) {
 	value = hsa_signal_wait_acquire(signals[i], HSA_SIGNAL_CONDITION_LT, 1, 
 					UINT64_MAX, HSA_WAIT_STATE_ACTIVE);
       }
-      t = 1.0E6 * (mysecond() - t);
+      //      tKernel = 1.0E6 * (mysecond() - tKernel);
+      tKernel = (mysecond() - tKernel);
     }
 /* #endif */
 /* #ifdef C2G */
@@ -695,6 +705,16 @@ int main(int argc, char *argv[]) {
     int trailing_items = NUM_IMGS % gpu_agents_used;
     unsigned long segment_size;
 
+
+#ifdef DEVMEM
+    hsa_signal_t copy_sig[gpu_agents_used];
+#ifdef AOS
+    cp_to_host_time = mysecond();
+    host_copy_aos(src_images, dst_images, dev_src_images, dev_dst_images, 
+		  gpu_agents, cpu_agents, 
+		  gpu_agents_used, objs, obj_size, placement);
+    cp_to_host_time = 1.0E6 * (mysecond() - cp_to_host_time);
+#endif
 #ifdef DA
     cp_to_host_time = mysecond();
     host_copy_da(r, g, b, x, a, c, d, e, f, h, j, k, l, m, n, o, p, q,
@@ -711,16 +731,6 @@ int main(int argc, char *argv[]) {
 		 gpu_agents_used, objs, obj_size, placement);
     cp_to_host_time = 1.0E6 * (mysecond() - cp_to_host_time);
 #endif // END DA 
-
-#ifdef DEVMEM
-    hsa_signal_t copy_sig[gpu_agents_used];
-#ifdef AOS
-    cp_to_host_time = mysecond();
-    host_copy_aos(src_images, dst_images, dev_src_images, dev_dst_images, 
-		  gpu_agents, cpu_agents, 
-		  gpu_agents_used, objs, obj_size, placement);
-    cp_to_host_time = 1.0E6 * (mysecond() - cp_to_host_time);
-#endif
 #ifdef CA
     cp_to_host_time = mysecond();
     host_copy_ca(src_images_ca, dst_images_ca, dev_src_images_ca, dev_dst_images_ca, 
@@ -786,7 +796,11 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < gpu_agents_used; i++) {
       if (i == gpu_agents_used - 1)
 	items_per_device = items_per_device + trailing_items;
-      check_results_da(r[i], g[i], b[i], x[i], d_r[i], host_start, items_per_device);
+#ifdef DEVMEM
+      check_results_da(g[i], g[i], b[i], x[i], r[i], host_start, items_per_device);
+#else 
+      check_results_da(g[i], g[i], b[i], x[i], r[i], host_start, items_per_device);
+#endif
     }
 #endif
 #ifdef CA
@@ -807,15 +821,21 @@ int main(int argc, char *argv[]) {
     /*   
      * Calculate performance metrics                                                                   
      */
-    unsigned long input_data = NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS; 
-    unsigned long output_data = NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS; 
+    //    unsigned long input_data = NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS; 
+    //    unsigned long output_data = NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS; 
+    //    unsigned long data_transfer = input_data + output_data; 
+
+    unsigned long input_data = NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE); 
+    unsigned long output_data = input_data; //NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS; 
     unsigned long data_transfer = input_data + output_data; 
+
     float dataGB = (float) data_transfer / 1e+09;
 
     // FIJI
     double FLOP = ((NUM_IMGS * 30) * PIXELS_PER_IMG) + (16 * PIXELS_PER_IMG);
     // adjust for unroll factor 
-    FLOP = FLOP + ((float) (ITERS - 1) * (float) NUM_IMGS * (float) PIXELS_PER_IMG);
+    //    FLOP = FLOP + ((float) (ITERS - 1) * (float) NUM_IMGS * (float) PIXELS_PER_IMG);
+    FLOP = PIXELS_PER_IMG;
     double gFLOP = FLOP / 1e+09;
     
     float throughput = gFLOP /secs;
@@ -833,16 +853,20 @@ int main(int argc, char *argv[]) {
 #ifdef HOST
     fprintf(stdout, "%3.2f\n", t_host/1000);
 #else 
-    fprintf(stdout, "%3.2f", t/1000); 
-#if defined COARSE || FINE
-   fprintf(stdout, ",%3.2f\n", throughput);
-#else
-    fprintf(stdout, ",%3.2f,%3.2f,%3.2f\n",
-	    cp_to_dev_time/1000,
-	    throughput, 
-	    throughput_with_copy);
+    fprintf(stdout, "%3.7f,", tKernel); 
+    fprintf(stdout, "%3.7f,", gFLOP); 
+    fprintf(stdout, "%3.7f,", dataGB); 
+    fprintf(stdout, "%3.2f,", dataGB/ tKernel);
+    fprintf(stdout, "%3.2f\n", gFLOP/ tKernel);
+/* #if defined COARSE || FINE */
+/*    fprintf(stdout, ",%3.2f\n", throughput); */
+/* #else */
+/*     fprintf(stdout, ",%3.2f,%3.2f,%3.2f\n", */
+/* 	    cp_to_dev_time/1000, */
+/* 	    throughput,  */
+/* 	    throughput_with_copy); */
 
-#endif
+//#endif
 
 #endif
 #endif

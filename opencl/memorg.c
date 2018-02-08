@@ -334,15 +334,11 @@ void assign_gcn_args_copy_da(gcn_da_arg *args,
 }
 
 void assign_gcn_args_da_new(gcn_da_arg *args, 
-			 DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
-			 DATA_ITEM_TYPE **b, 
-			 DATA_ITEM_TYPE **d_r, DATA_ITEM_TYPE **d_g, 
-			 DATA_ITEM_TYPE **d_b,
-			 DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_g, 
-			 DATA_ITEM_TYPE **dev_b, 
-			 DATA_ITEM_TYPE **dev_d_r, DATA_ITEM_TYPE **dev_d_g, 
-			 DATA_ITEM_TYPE **dev_d_b, 
-			 int gpu_agents_used, int objs) {
+			    DATA_ITEM_TYPE **r, 
+			    DATA_ITEM_TYPE **d_r,
+			    DATA_ITEM_TYPE **dev_r, 
+			    DATA_ITEM_TYPE **dev_d_r, 
+			    int gpu_agents_used, int objs) {
   int i = 0;
   unsigned objs_per_device = objs / gpu_agents_used; 
   int trailing_objs = objs % gpu_agents_used;
@@ -353,21 +349,10 @@ void assign_gcn_args_da_new(gcn_da_arg *args,
     memset(&args[i], 0, sizeof(args[i]));
 #ifdef DEVMEM
       args[i].r = dev_r[i];
-      args[i].g = dev_g[i];
-      args[i].b = dev_b[i];
       args[i].d_r = dev_d_r[i];
-      args[i].d_g = dev_d_g[i];
-      args[i].d_b = dev_d_b[i];
 #else
       args[i].r = r[i];
-      args[i].g = g[i];
-      args[i].b = b[i];
-      args[i].d_r = dev_d_r[i];
-      args[i].d_g = dev_d_g[i];
-      args[i].d_b = dev_d_b[i];
-      /* args[i].d_r = d_r[i]; */
-      /* args[i].d_g = d_g[i]; */
-      /* args[i].d_b = d_b[i]; */
+      args[i].d_r = d_r[i];
 #endif
     args[i].num_imgs = objs_per_device;
   }
@@ -1481,6 +1466,14 @@ void host_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
     err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
     check(Creating a HSA signal, err);
     
+    hsa_amd_memory_async_copy(r[i], gpu_agents[i], dev_r[i], gpu_agents[i], segment_size, 0, NULL, copy_sig[i]);
+    value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX, 
+				    HSA_WAIT_STATE_BLOCKED);
+    err=hsa_signal_destroy(copy_sig[i]);
+
+    err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+    check(Creating a HSA signal, err);
+
     hsa_amd_memory_async_copy(d_r[i], gpu_agents[i], dev_d_r[i], gpu_agents[i], segment_size, 0, NULL, copy_sig[i]);
     value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX, 
 				    HSA_WAIT_STATE_BLOCKED);

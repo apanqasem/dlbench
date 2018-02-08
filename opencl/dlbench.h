@@ -2,7 +2,7 @@
 #define DLBENCH_H
 
 
-#define DATA_ITEM_TYPE float
+#define DATA_ITEM_TYPE double
 
 #define NUM_IMGS IMGS
 #define PIXELS_PER_IMG PIXELS
@@ -160,13 +160,7 @@ typedef struct arg_aos_struct_type {
 
 typedef struct arg_da_struct_type {
   float *r;
-  float *g;
-  float *b; 
-  float *x;
   float *d_r;
-  float *d_g;
-  float *d_b; 
-  float *d_x;
   int start_index;
   int end_index;
 } args_da;

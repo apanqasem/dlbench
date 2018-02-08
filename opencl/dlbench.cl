@@ -1,4 +1,5 @@
 #include "dlbench.h"
+#include "kernel.h"
 
 __kernel void grayscale_aos(__global pixel *src_images, 
 			    __global pixel *dst_images, 
@@ -93,25 +94,23 @@ __kernel void copy_da(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *d_r,
 		      int num_imgs) {
 
   const size_t i = get_local_id(0);
-  d_r[i] = r[i];
   
 }
-__kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *g, 
-			       __global DATA_ITEM_TYPE *b, 
+__kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r,
 			       __global DATA_ITEM_TYPE *d_r, 
-			       __global DATA_ITEM_TYPE *d_g, 
-			       __global DATA_ITEM_TYPE *d_b, 
 			       int num_imgs) {
 
-  //  size_t i = get_local_id(0);
-  //  size_t group_id = get_group_id(0);
   const size_t i = get_global_id(0);
+  double alpha = 0.5;
+  double beta = 0.8;
+  //  KERNEL1(beta,r[i],alpha);
+  //  r[i] = beta;
+  d_r[i] = r[i] * beta;
 
 #if 0
   int sets = (group_id / SPARSITY);    // sets processed 
   int set_offset = WORKGROUP * SPARSITY * sets;
   i = (i * SPARSITY) + (group_id - SPARSITY * sets) + set_offset;
-#endif
 
   float F0 = 0.02f; 
   float F1 = 0.30f; 
@@ -146,6 +145,7 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TY
       }
     }
   }
+#endif
 }
 
 #if 0

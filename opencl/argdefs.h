@@ -91,12 +91,12 @@ typedef struct __attribute__ ((aligned(16))) gcn_generic_arg_type {
 
 typedef struct __attribute__ ((aligned(16))) gcn_da_arg_type {
   void* r;
+  void* d_r;
+#if 0
   void* g;
   void* b;
-  void* d_r;
   void* d_g;
   void* d_b;
-#if 0
   void* x;
   void* a;
   void* c;

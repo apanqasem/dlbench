@@ -7,6 +7,8 @@
 #include <hsa.h>
 #include <hsa_ext_finalize.h>
 
+#include "kernel.h"
+
 #define MAX_ERRORS 10
 #define check(msg, status) \
 if (status != HSA_STATUS_SUCCESS) { \
@@ -113,7 +115,7 @@ void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int
 #endif
 }
 
-void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x,
+void check_results_da(DATA_ITEM_TYPE *r_copy, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x,
                       DATA_ITEM_TYPE *d_r, int host_start, int device_end) {
 
   float F0 = 0.02f; 
@@ -171,7 +173,13 @@ void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, D
 #endif
       }
 #endif
-      if (r[i] != d_r[i]) 
+      
+      double alpha = 0.5;
+      double beta = 0.8;
+      KERNEL1(beta,r_copy[i],alpha);
+      r_copy[i] = beta;
+      
+      if (r_copy[i] != d_r[i]) 
 	errors = 1;
     }
   fprintf(stderr, "%s\n", (errors > 0 ? "FAILED (GPU)" : "PASSED (GPU)"));
