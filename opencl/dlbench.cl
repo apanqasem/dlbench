@@ -103,9 +103,9 @@ __kernel void grayscale_da_new(__global DATA_ITEM_TYPE *r,
   const size_t i = get_global_id(0);
   double alpha = 0.5;
   double beta = 0.8;
-  //  KERNEL1(beta,r[i],alpha);
-  //  r[i] = beta;
-  d_r[i] = r[i] * beta;
+  KERNEL1(beta,r[i],alpha);
+  r[i] = beta;
+  //  d_r[i] = r[i] * beta;
 
 #if 0
   int sets = (group_id / SPARSITY);    // sets processed 
