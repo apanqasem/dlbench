@@ -1190,7 +1190,7 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
 	dev_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 	dev_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 	dev_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
-	
+#if 0	
 #if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
 	dev_x[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 #endif
@@ -1285,7 +1285,7 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
 #if defined MEM18
       dev_d_q[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 #endif
-    
+#endif     
       if (placement == PLACE_DEVMEM) {
       
 	if (!dev_r[i] || !dev_g[i] || !dev_b[i])  {
@@ -1320,7 +1320,7 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
 					HSA_WAIT_STATE_ACTIVE);
 	err=hsa_signal_destroy(copy_sig[i]);
 	// #endif
-	
+#if 0	
 #if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18     
 	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
 	check(Creating a HSA signal, err);
@@ -1466,6 +1466,7 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
 					HSA_WAIT_STATE_ACTIVE);
 	err=hsa_signal_destroy(copy_sig[i]);
 #endif
+	#endif
       }
     }
     return;
