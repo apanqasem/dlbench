@@ -311,3 +311,14 @@ void convert_da_to_aos(DATA_ITEM_TYPE *d_r, DATA_ITEM_TYPE *d_g, DATA_ITEM_TYPE 
 		       DATA_ITEM_TYPE *d_x, pixel *dst_images, 
 		       int start, int end);
 
+void dev_copy_da_new(DATA_ITEM_TYPE **r,
+		     DATA_ITEM_TYPE **dev_r, 
+		     hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
+		     int gpu_agents_used, int objs, int obj_size, 
+		     int placement);
+
+void dev_copy_da_allocate(DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_d_r, 
+			  hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
+			  int gpu_agents_used, int objs, int obj_size, 
+			  int placement);
+

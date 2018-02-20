@@ -1069,6 +1069,70 @@ void dev_copy_soa(img **src_images, img **dst_images,
     return;
 }
 
+void dev_copy_da_allocate(DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_d_r, 
+			  hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
+			  int gpu_agents_used, int objs, int obj_size, 
+			  int placement) {
+
+  unsigned objs_per_device = objs / gpu_agents_used; 
+  int trailing_objs = objs % gpu_agents_used;
+  unsigned long segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
+  
+  hsa_status_t err;
+  hsa_signal_value_t value;
+  int i = 0;
+  hsa_signal_t copy_sig[gpu_agents_used];
+
+  for (i = 0; i < gpu_agents_used; i++) {
+    if (i == gpu_agents_used - 1) {
+      objs_per_device = objs_per_device + trailing_objs;
+      segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
+    }
+    if (placement == PLACE_DEVMEM) {
+      dev_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      dev_d_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+    }
+  }
+  if (!dev_r[i] || !dev_d_r[i]) {
+    printf("Unable to malloc discrete arrays to device memory. Exiting\n");
+    exit(0);
+  }
+  return; 
+}
+
+void dev_copy_da_new(DATA_ITEM_TYPE **r,
+		     DATA_ITEM_TYPE **dev_r, 
+		     hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
+		     int gpu_agents_used, int objs, int obj_size, 
+		     int placement) {
+  
+  unsigned objs_per_device = objs / gpu_agents_used; 
+  int trailing_objs = objs % gpu_agents_used;
+  unsigned long segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
+  
+  hsa_status_t err;
+  hsa_signal_value_t value;
+  int i = 0;
+  hsa_signal_t copy_sig[gpu_agents_used];
+
+  for (i = 0; i < gpu_agents_used; i++) {
+    if (i == gpu_agents_used - 1) {
+      objs_per_device = objs_per_device + trailing_objs;
+      segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
+    }
+
+    err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+    check(Creating a HSA signal, err);
+    hsa_amd_memory_async_copy(dev_r[i], gpu_agents[i], r[i], gpu_agents[i],
+			      segment_size, 0, NULL, copy_sig[i]);
+    value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+				    HSA_WAIT_STATE_ACTIVE);
+    err=hsa_signal_destroy(copy_sig[i]);
+
+  }
+}
+
+
 void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
 		 DATA_ITEM_TYPE **b, DATA_ITEM_TYPE **x, 
 		 DATA_ITEM_TYPE **a, DATA_ITEM_TYPE **c, 

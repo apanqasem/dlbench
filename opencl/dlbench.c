@@ -470,6 +470,17 @@ int main(int argc, char *argv[]) {
 #endif
     //#ifdef DEVMEM
     cp_to_dev_time = mysecond();
+    dev_copy_da_allocate(dev_r,dev_d_r, 
+		    gpu_agents, cpu_agents, 
+		    gpu_agents_used, objs, obj_size, 
+		    placement);
+    dev_copy_da_new(r, dev_r, 
+		    gpu_agents, cpu_agents, 
+		    gpu_agents_used, objs, obj_size, 
+		    placement);
+    cp_to_dev_time = 1.0E6 * (mysecond() - cp_to_dev_time);
+
+#if 0
     dev_copy_da(r, g, b, x, a, c, d, e, f, h, j, k, l, m, n, o, p, q,
 		d_r, d_g, d_b, d_x, d_a, d_c, d_d, d_e, d_f, d_h, d_j, d_k, d_l, d_m, d_n, d_o, d_p, d_q, 
 		dev_r, dev_g, dev_b, dev_x,
@@ -482,7 +493,7 @@ int main(int argc, char *argv[]) {
 		dev_d_l, dev_d_m, dev_d_n, dev_d_o, dev_d_p, dev_d_q,
 		gpu_agents, cpu_agents, 
 		gpu_agents_used, objs, obj_size, placement);
-    cp_to_dev_time = 1.0E6 * (mysecond() - cp_to_dev_time);
+#endif
     //#endif
 #endif // END DA 
 #ifdef CA
@@ -717,6 +728,7 @@ int main(int argc, char *argv[]) {
 #endif
 #ifdef DA
     cp_to_host_time = mysecond();
+#if 0
     host_copy_da(r, g, b, x, a, c, d, e, f, h, j, k, l, m, n, o, p, q,
 		 d_r, d_g, d_b, d_x, d_a, d_c, d_d, d_e, d_f, d_h, d_j, d_k, d_l, d_m, d_n, d_o, d_p, d_q, 
 		 dev_r, dev_g, dev_b, dev_x,
@@ -729,6 +741,7 @@ int main(int argc, char *argv[]) {
 		 dev_d_l, dev_d_m, dev_d_n, dev_d_o, dev_d_p, dev_d_q,
 		 gpu_agents, cpu_agents, 
 		 gpu_agents_used, objs, obj_size, placement);
+#endif
     cp_to_host_time = 1.0E6 * (mysecond() - cp_to_host_time);
 #endif // END DA 
 #ifdef CA
@@ -833,8 +846,8 @@ int main(int argc, char *argv[]) {
 
     // FIJI
     double FLOP = ((NUM_IMGS * 30) * PIXELS_PER_IMG) + (16 * PIXELS_PER_IMG);
-    // adjust for unroll factor 
     //    FLOP = FLOP + ((float) (ITERS - 1) * (float) NUM_IMGS * (float) PIXELS_PER_IMG);
+
     FLOP = PIXELS_PER_IMG;
     double gFLOP = FLOP / 1e+09;
     
@@ -852,22 +865,24 @@ int main(int argc, char *argv[]) {
 #else
 #ifdef HOST
     fprintf(stdout, "%3.2f\n", t_host/1000);
-#else 
+#endif 
+#ifdef DEVMEM
     fprintf(stdout, "%3.7f,", tKernel); 
-    fprintf(stdout, "%3.7f,", gFLOP); 
-    fprintf(stdout, "%3.7f,", dataGB); 
+    fprintf(stdout, "%3.7f,", cp_to_dev_time/1e+06); 
+    fprintf(stdout, "%3.7f,", cp_to_host_time/1e+06); 
+
+    fprintf(stdout, "%3.2f,", gFLOP); 
+    fprintf(stdout, "%3.2f,", dataGB); 
+    fprintf(stdout, "%3.2f,", dataGB/ tKernel);
+    fprintf(stdout, "%3.2f,", dataGB/(cp_to_dev_time/1e+06)); 
+    fprintf(stdout, "%3.2f,", dataGB/(cp_to_host_time/1e+06)); 
+    fprintf(stdout, "%3.2f\n", gFLOP/ tKernel);
+#else
+    fprintf(stdout, "%3.7f,", tKernel); 
+    fprintf(stdout, "%3.2f,", gFLOP); 
+    fprintf(stdout, "%3.2f,", dataGB); 
     fprintf(stdout, "%3.2f,", dataGB/ tKernel);
     fprintf(stdout, "%3.2f\n", gFLOP/ tKernel);
-/* #if defined COARSE || FINE */
-/*    fprintf(stdout, ",%3.2f\n", throughput); */
-/* #else */
-/*     fprintf(stdout, ",%3.2f,%3.2f,%3.2f\n", */
-/* 	    cp_to_dev_time/1000, */
-/* 	    throughput,  */
-/* 	    throughput_with_copy); */
-
-//#endif
-
 #endif
 #endif
 
