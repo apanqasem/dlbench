@@ -10,6 +10,7 @@
 #define ITERS INTENSITY
 #define NUM_IMGS IMGS
 #define PIXELS_PER_IMG PIXELS
+#define THREADS __THREADS
 #endif
 
 #define SWEEPS 1                         // floating-point ops in one iteration of kernel looPp

@@ -104,6 +104,15 @@ __global__ void grayscale(pixel *src_images, pixel *dst_images) {
 #endif
 
 #ifdef DA
+__global__ void copy_da(DATA_ITEM_TYPE *r,  DATA_ITEM_TYPE *d_r) {
+  int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+  for (int j = 0; j < NUM_IMGS * PIXELS_PER_IMG; j = j + PIXELS_PER_IMG) {
+    for (int k = 0; k < PIXELS_PER_IMG/THREADS; k++) {
+	d_r[tidx + j + k] = r[tidx + j + k];
+    }
+  }
+}
+
 __global__ void grayscale( DATA_ITEM_TYPE *r,  DATA_ITEM_TYPE *g, 
 			   DATA_ITEM_TYPE *b,  DATA_ITEM_TYPE *x,  
 			   DATA_ITEM_TYPE *a,  DATA_ITEM_TYPE *c, 
@@ -1123,17 +1132,18 @@ int main(int argc,char *argv[]) {
 #endif
  
 #ifdef DA
-  grayscale<<<blockPerGrid,threadsPerBlock>>>(d_r, d_g, d_b, d_x, 
-					      d_a, d_c, d_d, d_e, 
-					      d_f, d_h, d_j, d_k, 
-					      d_l, d_m, 
-					      d_n, d_o, d_p, d_q, 
-					      d_dst_r, d_dst_g, d_dst_b, d_dst_x, 
-					      d_dst_a, d_dst_c, d_dst_d, d_dst_e, 
-					      d_dst_f, d_dst_h, d_dst_j, d_dst_k, 
-					      d_dst_l, d_dst_m,
-					      d_dst_n, d_dst_o,
-					      d_dst_p, d_dst_q);
+ copy_da<<<blockPerGrid,threadsPerBlock>>>(d_r, d_dst_r);
+  /* grayscale<<<blockPerGrid,threadsPerBlock>>>(d_r, d_g, d_b, d_x,  */
+  /* 					      d_a, d_c, d_d, d_e,  */
+  /* 					      d_f, d_h, d_j, d_k,  */
+  /* 					      d_l, d_m,  */
+  /* 					      d_n, d_o, d_p, d_q,  */
+  /* 					      d_dst_r, d_dst_g, d_dst_b, d_dst_x,  */
+  /* 					      d_dst_a, d_dst_c, d_dst_d, d_dst_e,  */
+  /* 					      d_dst_f, d_dst_h, d_dst_j, d_dst_k,  */
+  /* 					      d_dst_l, d_dst_m, */
+  /* 					      d_dst_n, d_dst_o, */
+  /* 					      d_dst_p, d_dst_q); */
 #endif
 #ifdef CA
   grayscale<<<blockPerGrid,threadsPerBlock>>>(d_src_images, d_dst_images);  
@@ -1257,7 +1267,7 @@ int main(int argc,char *argv[]) {
 #endif
 #ifndef HETERO
 #ifdef DEVICE
-  fprintf(stdout, "%3.2f,", t/1000);
+  fprintf(stdout, "%3.2f,", t);
   fprintf(stdout, "%3.2f\n", (t_with_copy/1000));
 //fprintf(stdout, "%3.2f\n", (t_with_copy/1000 - t/1000));
 #endif

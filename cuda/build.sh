@@ -37,6 +37,10 @@ while [ $# -gt 0 ]; do
 			pixels="$2"
 			shift
 			;;
+		--threads)
+			threads="$2"
+			shift
+			;;
     --placement)
       placement="$2"
 			shift
@@ -96,6 +100,7 @@ done
 [ "$cfactor" ] || { cfactor="1"; }
 [ "$size" ] || { size="1000"; }
 [ "$pixels" ] || { pixels="1024"; }
+[ "$threads" ] || { threads=${pixels}; }
 [ "$sparsity" ] || { sparsity="1"; }
 [ "$tile" ] || { tile="64"; }
 [ "$intensity" ] || { intensity="1"; }
@@ -157,6 +162,12 @@ if [ $mode = "clean" ]; then
 	exit 0
 fi	
 
+if [ $((${pixels} % ${threads})) -ne 0 ]; then
+		echo "Build failed!" 
+		echo "Number of threads must divide number of pixels: pixels = ${pixels}, threads = ${threads}" 
+		exit 0
+fi
+
 # build from C source 
 if [ $mode = "build" ]; then
 #	echo "${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} -DINTENSITY=${intensity} -D${layout} -D${agent} dlbench.cu -lpthread"
@@ -166,7 +177,7 @@ if [ $regs ]; then
 #	echo $res
 #	rm tmp
 else 
-	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread 
+	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread 
 fi
 fi
 
