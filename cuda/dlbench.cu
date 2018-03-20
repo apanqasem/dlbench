@@ -5,6 +5,9 @@
 #include<pthread.h>
 #include<dlbench.h>
 
+#include<aos.h>
+#include<da.h>
+
 #define MAX_ERRORS 10
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -25,83 +28,6 @@ double mysecond() {
   return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
 }
 
-#ifdef AOS
-__global__ void grayscale(pixel *src_images, pixel *dst_images) {
-
-  int tidx = threadIdx.x; // + blockDim.x * blockIdx.x;
-
-  int sets = (blockIdx.x / SPARSITY);    // sets processed 
-  int set_offset = WORKGROUP * SPARSITY * sets;
-  tidx = (tidx * SPARSITY) + (blockIdx.x - SPARSITY * sets) + set_offset;
-
-  float F0 = 0.02f; 
-  float F1 = 0.30f; 
-
-      for (int j = 0; j < NUM_IMGS * PIXELS_PER_IMG; j = j + PIXELS_PER_IMG) {
-      DATA_ITEM_TYPE v0 = 0.0f;
-      DATA_ITEM_TYPE v1 = 0.0f;
-      //      DATA_ITEM_TYPE c0 = (src_images[tidx + j].r / src_images[tidx + j].g + src_images[tidx + j].b) // / (F1 * src_images[tidx + j].b);
-      DATA_ITEM_TYPE c0 = (src_images[tidx + j].r / src_images[tidx + j].g + (F0 + F1 * F1) * 
-			   src_images[tidx + j].b) / (F1 * src_images[tidx + j].b);
-      DATA_ITEM_TYPE c1 = F1 * src_images[tidx + j].b;
-//#pragma unroll UNROLL
-     for (int k = 0; k < ITERS; k++) {
-       v0 = v0 + c0;
-       v1 = v0 - c1;
-     }
-     dst_images[tidx + j].r = (src_images[tidx + j].r * v0 - src_images[tidx + j].g * F1 * v1);
-     dst_images[tidx + j].g  = (src_images[tidx + j].g * F1 * (1.0f - v1) - src_images[tidx + j].r); 
-#if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].b = v0;
-#endif
-#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].x = v1;
-#endif
-#if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].a = v0; 
-#endif
-#if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].c  = v1; 
-#endif
-#if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].d = v0;
-#endif
-#if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].e = v1;
-#endif
-#if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].f = v0; 
-#endif
-#if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].h  = v1; 
-#endif
-#if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].j = v0; 
-#endif
-#if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].k  = v1; 
-#endif
-#if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].l = v0; 
-#endif
-#if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].m  = v1; 
-#endif
-#if defined MEM15 || MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].n  = v1; 
-#endif
-#if defined MEM16 || MEM17 || MEM18
-      dst_images[tidx + j].o  = v1; 
-#endif
-#if defined MEM17 || MEM18
-      dst_images[tidx + j].p  = v1; 
-#endif
-#if defined MEM18
-      dst_images[tidx + j].q  = v1; 
-#endif
-    }
-}
-#endif
 
 #ifdef DA
 __global__ void copy_da(DATA_ITEM_TYPE *r,  DATA_ITEM_TYPE *d_r) {
@@ -346,10 +272,11 @@ __global__ void grayscale(img *src_images, img *dst_images) {
   for (int j = 0; j < NUM_IMGS; j++) {
     DATA_ITEM_TYPE v0 = 0.0f;
     DATA_ITEM_TYPE v1 = 0.0f;
-      DATA_ITEM_TYPE c0 = (src_images[tidx + j].r / src_images[tidx + j].g + (F0 + F1 * F1) * 
-      	      src_images[tidx + j].b) / (F1 * src_images[tidx + j].b);
-      DATA_ITEM_TYPE c1 = F1 * src_images[tidx + j].b;
-#pragma unroll UNROLL
+    DATA_ITEM_TYPE c0 = (src_images[j].r[tidx] / src_images[j].g[tidx] + (F0 + F1 * F1) * 
+			 src_images[j].b[tidx]) / (F1 * src_images[j].b[tidx]);
+    DATA_ITEM_TYPE c1 = F1 * src_images[j].b[tidx];
+
+    //#pragma unroll UNROLL
     for (int k = 0; k < ITERS; k++) {
       v0 = v0 + c0;
       v1 = v0 - c1;
@@ -460,7 +387,7 @@ void *host_grayscale_da(void *p) {
   return NULL;
 }
 void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int device_end) {
-
+#if 0
   float F0 = 0.02f; 
   float F1 = 0.30f; 
   int errors = 0;
@@ -469,10 +396,12 @@ void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int
     for (unsigned int i = j; i < j + PIXELS_PER_IMG; i++) {
       DATA_ITEM_TYPE v0 = 0.0f;
       DATA_ITEM_TYPE v1 = 0.0f;
+      DATA_ITEM_TYPE c0 = (src_images[i].r / src_images[i].g + (F0 + F1 * F1) * 
+			   src_images[i].b) / (F1 * src_images[i].b);
+      DATA_ITEM_TYPE c1 = F1 * src_images[i].b; 
       for (int k = 0; k < ITERS; k++) {
-	v0 = (src_images[i].r / src_images[i].g + (F0 + F1 * F1) * 
-	      src_images[i].b) / (F1 * src_images[i].b);
-	v1 = v0 - F1 * src_images[i].b;
+	v0 = v0 + c0;
+	v1 = v0 - c1;
       }
       DATA_ITEM_TYPE exp_result = (src_images[i].r * v0 - src_images[i].g * F1 * v1); 
 
@@ -496,8 +425,8 @@ void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int
       DATA_ITEM_TYPE v1 = 0.0f;
       for (int k = 0; k < ITERS; k++) {
 	v0 = v0 + (src_images[i].r / src_images[i].g + (F0 + F1 * F1) * 
-		   src_images[i].b) / (F1 * src_images[i].b);
-	v1 = v0 - F1 * src_images[i].b;
+			   src_images[i].b) / (F1 * src_images[i].b);
+      	v1 = v0 - F1 * src_images[i].b;
       }
       DATA_ITEM_TYPE exp_result = (src_images[i].r * v0 - src_images[i].g * F1 * v1); 
 
@@ -516,11 +445,13 @@ void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int
     }
   fprintf(stderr, "%s\n", (errors > 0 ? "FAILED (GPU)" : "PASSED (GPU)"));
 #endif
+#endif
 }
 
 void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x,
                       DATA_ITEM_TYPE *d_r, int host_start, int device_end) {
 
+#if 0
   float F0 = 0.02f; 
   float F1 = 0.30f; 
   int errors = 0;
@@ -577,6 +508,7 @@ void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, D
     }
   fprintf(stderr, "%s\n", (errors > 0 ? "FAILED (GPU)" : "PASSED (GPU)"));
   #endif 
+#endif
   return;
 }
 
@@ -695,9 +627,12 @@ int main(int argc,char *argv[]) {
   for (int j = 0; j < NUM_IMGS * PIXELS_PER_IMG; j += PIXELS_PER_IMG)     
    for (int i = j; i < j + PIXELS_PER_IMG; i++) {
      src_images[i].r = (DATA_ITEM_TYPE)i;
-     src_images[i].g = i * 10.0f;
-#if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-	  src_images[i].b = (DATA_ITEM_TYPE)i;
+#if (MEM >= 2)
+       src_images[i].g = i * 10.0f;
+#endif
+// #if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 3)     
+       src_images[i].b = (DATA_ITEM_TYPE)i;
 #endif
 #if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
 	  src_images[i].x = i * 10.0f;
@@ -752,7 +687,9 @@ int main(int argc,char *argv[]) {
   for (int j = 0; j < NUM_IMGS * PIXELS_PER_IMG; j += PIXELS_PER_IMG)     
    for (int i = j; i < j + PIXELS_PER_IMG; i++) {
      src_images_copy[i].r = src_images[i].r;
+#if (MEM >= 2)
      src_images_copy[i].g = src_images[i].g; 
+#endif
 #if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
      src_images_copy[i].b = src_images[i].b;
 #endif
@@ -933,12 +870,18 @@ int main(int argc,char *argv[]) {
     printf("Unable to malloc dst_images to fine grain memory. Exiting\n");
     exit(0);
   }
+  for (int j = 0; j < NUM_IMGS; j++) {
+    src_images[j].r = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG); 
+    src_images[j].g = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG); 
+    src_images[j].b = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG); 
+  }
+
   for (int j = 0; j < NUM_IMGS; j++) 
     for (int k = 0; k < PIXELS_PER_IMG; k++) {
       src_images[j].r[k] = (DATA_ITEM_TYPE)k;
       src_images[j].g[k] = k * 10.0f;
       src_images[j].b[k] = (DATA_ITEM_TYPE)k;
-      src_images[j].x[k] = k * 10.0f;
+      //      src_images[j].x[k] = k * 10.0f;
     }
 
   img *d_src_images;
@@ -1103,7 +1046,7 @@ int main(int argc,char *argv[]) {
 
  int threadsPerBlock = WORKGROUP;
  int blockPerGrid = THREADS/WORKGROUP; 
-
+ printf("%d\n", blockPerGrid);
 #ifdef C2GI
 #ifdef AOS
  for (int i = 0; i < KERNEL_ITERS; i++) {
@@ -1132,18 +1075,20 @@ int main(int argc,char *argv[]) {
 #endif
  
 #ifdef DA
- copy_da<<<blockPerGrid,threadsPerBlock>>>(d_r, d_dst_r);
-  /* grayscale<<<blockPerGrid,threadsPerBlock>>>(d_r, d_g, d_b, d_x,  */
-  /* 					      d_a, d_c, d_d, d_e,  */
-  /* 					      d_f, d_h, d_j, d_k,  */
-  /* 					      d_l, d_m,  */
-  /* 					      d_n, d_o, d_p, d_q,  */
-  /* 					      d_dst_r, d_dst_g, d_dst_b, d_dst_x,  */
-  /* 					      d_dst_a, d_dst_c, d_dst_d, d_dst_e,  */
-  /* 					      d_dst_f, d_dst_h, d_dst_j, d_dst_k,  */
-  /* 					      d_dst_l, d_dst_m, */
-  /* 					      d_dst_n, d_dst_o, */
-  /* 					      d_dst_p, d_dst_q); */
+   // copy_da<<<blockPerGrid,threadsPerBlock>>>(d_r, d_dst_r);
+  // grayscale<<<blockPerGrid,threadsPerBlock>>>(d_r, d_g, d_b, d_x,
+  // 					      d_a, d_c, d_d, d_e,
+  // 					      d_f, d_h, d_j, d_k,
+  // 					      d_l, d_m,
+  // 					      d_n, d_o, d_p, d_q,
+  // 					      d_dst_r, d_dst_g, d_dst_b, d_dst_x,
+  // 					      d_dst_a, d_dst_c, d_dst_d, d_dst_e,
+  // 					      d_dst_f, d_dst_h, d_dst_j, d_dst_k,
+  // 					      d_dst_l, d_dst_m,
+  // 					      d_dst_n, d_dst_o,
+  // 					      d_dst_p, d_dst_q);
+   grayscale<<<blockPerGrid,threadsPerBlock>>>(d_r, d_dst_r); 
+
 #endif
 #ifdef CA
   grayscale<<<blockPerGrid,threadsPerBlock>>>(d_src_images, d_dst_images);  
@@ -1229,7 +1174,7 @@ int main(int argc,char *argv[]) {
   check_results_ca(src_images, dst_images, host_start, device_end);
 #endif
 #ifdef SOA
-   check_results_soa(src_images, dst_images, host_start, device_end);
+  //   check_results_soa(src_images, dst_images, host_start, device_end);
 #endif
 #endif
 

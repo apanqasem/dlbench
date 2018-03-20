@@ -96,14 +96,16 @@ done
 [ "$layout" ] || { layout="AOS"; }
 [ "$pattern" ] || { pattern="C2G"; }
 [ "$kiters" ] || { kiters="1"; }
-[ "$mem" ] || { mem="2"; }
+
+[ "$mem" ] || { mem="1"; }
 [ "$cfactor" ] || { cfactor="1"; }
 [ "$size" ] || { size="1000"; }
 [ "$pixels" ] || { pixels="1024"; }
 [ "$threads" ] || { threads=${pixels}; }
 [ "$sparsity" ] || { sparsity="1"; }
 [ "$tile" ] || { tile="64"; }
-[ "$intensity" ] || { intensity="1"; }
+
+[ "$intensity" ] || { intensity="1"; }  
 [ "$mode" ] || { mode="build";} 
 [ "$agent" ] || { agent="DEVICE";}
 [ "$placement" ] || { placement="DM";}
@@ -123,7 +125,7 @@ case $host in
 	t1|ROCNREDLINE)
 		node="fiji"
 		;;
-	knuth|ada.cs.txstate.edu|capi.cs.txstate.edu|t0|t2)
+	knuth|ada.cs.txstate.edu|capi.cs.txstate.edu|t0|t2|minksy)
 		node="cuda"
 		;;
 	*)
@@ -149,6 +151,9 @@ fi
 if [ $host = "ada.cs.txstate.edu" ]; then 
 	ARCH="-arch sm_61"
 fi
+if [ $host = "minksy" ]; then 
+	ARCH="-arch sm_50"
+fi
 
 FLAGS="-g ${ARCH} -O3 -ccbin g++" # --maxrregcount=16"  #
 LFLAGS=-lcudadevrt 
@@ -172,12 +177,13 @@ fi
 if [ $mode = "build" ]; then
 #	echo "${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} -DINTENSITY=${intensity} -D${layout} -D${agent} dlbench.cu -lpthread"
 if [ $regs ]; then 
-	${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} --keep --ptxas-options -v -DMEM${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -DIMGS=${size} -D${layout} -D${agent} -D${placement} dlbench.cu -lpthread # 2> tmp
+	${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} --keep --ptxas-options -v -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -DIMGS=${size} -D${layout} -D${agent} -D${placement} dlbench.cu -lpthread # 2> tmp
 #	res=`cat tmp | grep registers | awk '{print $5}'`
 #	echo $res
 #	rm tmp
 else 
-	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread 
+	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread 
+	echo "${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread"
 fi
 fi
 

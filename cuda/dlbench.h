@@ -7,63 +7,69 @@
 #define DATA_ITEM_TYPE __DATA_ITEM_TYPE_FROM_TUNER
 #else 
 #define DATA_ITEM_TYPE float
-#define ITERS INTENSITY
 #define NUM_IMGS IMGS
 #define PIXELS_PER_IMG PIXELS
 #define THREADS __THREADS
 #endif
 
+#define ITERS 22 + (INTENSITY - 1) * 24 + ((MEM - 3) * 8) 
 #define SWEEPS 1                         // floating-point ops in one iteration of kernel looPp
 #define UNROLL 100
 #define KERNEL_ITERS KITERS
 
 typedef struct pixel_type {
+#if (MEM >= 1)
   DATA_ITEM_TYPE r;
+#endif 
+#if (MEM >= 2)
   DATA_ITEM_TYPE g;
+#endif
+#if (MEM >= 3)
   DATA_ITEM_TYPE b;
-#if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
-    DATA_ITEM_TYPE x;
-  #endif
-#if defined MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#endif
+#if (MEM >= 4)
+  DATA_ITEM_TYPE x;
+#endif
+#if (MEM >= 5)
     DATA_ITEM_TYPE a;
 #endif
-#if defined MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 6)
     DATA_ITEM_TYPE c;
 #endif
-#if defined MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 7)
     DATA_ITEM_TYPE d;
 #endif
-#if defined MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 8)
     DATA_ITEM_TYPE e;
 #endif
-#if defined MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 9)
     DATA_ITEM_TYPE f;
 #endif
-#if defined MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 10)
     DATA_ITEM_TYPE h;
 #endif
-#if defined MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 11)
     DATA_ITEM_TYPE j;
 #endif
-#if defined MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 12)
     DATA_ITEM_TYPE k;
 #endif
-#if defined MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 13)
     DATA_ITEM_TYPE l;
 #endif
-#if defined MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 14)
     DATA_ITEM_TYPE m;
 #endif
-#if defined MEM15 || MEM16 || MEM17 || MEM18
+#if (MEM >= 15)
     DATA_ITEM_TYPE n;
 #endif
-#if defined MEM16 || MEM17 || MEM18
+#if (MEM >= 16)
     DATA_ITEM_TYPE o;
 #endif
-#if defined MEM17 || MEM18
+#if (MEM >= 17)
     DATA_ITEM_TYPE p;
 #endif
-#if defined MEM18
+#if (MEM >= 18)
     DATA_ITEM_TYPE q;
 #endif
   } pixel;
@@ -119,8 +125,9 @@ typedef struct img_type {
 #endif
 } img;
 
-#ifdef MEM2
 #define FIELDS 3
+#ifdef MEM2
+#define FIELDS 2
 #endif
 #ifdef MEM3 
 #define FIELDS 3
@@ -200,7 +207,7 @@ typedef struct arg_da_struct_type {
 #define TILE TILESIZE
 
 #define THREADS PIXELS_PER_IMG / CF
-#define WORKGROUP 64
+#define WORKGROUP 1024
 #define SPARSITY SPARSITY_VAL
 
 
