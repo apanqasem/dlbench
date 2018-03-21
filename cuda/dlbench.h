@@ -1,21 +1,22 @@
 #ifndef DLBENCH_H
 #define DLBENCH_H
-#ifdef TUNE
-#define ITERS __INTENSITY_FROM_TUNER
-#define NUM_IMGS __NUM_IMGS_FROM_TUNER
-#define PIXELS_PER_IMG __PIXELS_PER_IMG_FROM_TUNER
-#define DATA_ITEM_TYPE __DATA_ITEM_TYPE_FROM_TUNER
-#else 
+
 #define DATA_ITEM_TYPE float
 #define NUM_IMGS IMGS
 #define PIXELS_PER_IMG PIXELS
 #define THREADS __THREADS
-#endif
 
-#define ITERS 22 + (INTENSITY - 1) * 24 + ((MEM - 3) * 8) 
-#define SWEEPS 1                         // floating-point ops in one iteration of kernel looPp
-#define UNROLL 100
+#define ITERS ((MEM * 4 * 2) - 2) + (INTENSITY - 1) * (MEM * 4 * 2)
+#define FIELDS MEM
+
+#define SWEEPS 1   
 #define KERNEL_ITERS KITERS
+#define CF COARSENFACTOR
+#define TILE TILESIZE
+
+#define THREADS PIXELS_PER_IMG / CF
+#define WORKGROUP 64
+#define SPARSITY SPARSITY_VAL
 
 typedef struct pixel_type {
 #if (MEM >= 1)
@@ -125,93 +126,9 @@ typedef struct img_type {
 #endif
 } img;
 
-#define FIELDS 3
-#ifdef MEM2
-#define FIELDS 2
-#endif
-#ifdef MEM3 
-#define FIELDS 3
-#endif
-#ifdef MEM4 
-#define FIELDS 4
-#endif
-#ifdef MEM5 
-#define FIELDS 5
-#endif
-#ifdef MEM6 
-#define FIELDS 6
-#endif
-#ifdef MEM7 
-#define FIELDS 7
-#endif
-#ifdef MEM8 
-#define FIELDS 8
-#endif
-#ifdef MEM9 
-#define FIELDS 9
-#endif
-#ifdef MEM10 
-#define FIELDS 10
-#endif
-#ifdef MEM11 
-#define FIELDS 11
-#endif
-#ifdef MEM12 
-#define FIELDS 12
-#endif
-#ifdef MEM13 
-#define FIELDS 13
-#endif
-#ifdef MEM14 
-#define FIELDS 14
-#endif
-#ifdef MEM15 
-#define FIELDS 15
-#endif
-#ifdef MEM16 
-#define FIELDS 16
-#endif
-#ifdef MEM17 
-#define FIELDS 17
-#endif
-#ifdef MEM18 
-#define FIELDS 18
-#endif
-
-typedef struct arg_aos_struct_type {
-  pixel *src;
-  pixel *dst;
-  int start_index;
-  int end_index;
-} args_aos;
-
-
-typedef struct arg_da_struct_type {
-  float *r;
-  float *g;
-  float *b; 
-  float *x;
-  float *d_r;
-  float *d_g;
-  float *d_b; 
-  float *d_x;
-  int start_index;
-  int end_index;
-} args_da;
-
 
 #define DEVICES 2
 #define CPU_THREADS 4
-
-#define CF COARSENFACTOR
-#define TILE TILESIZE
-
-#define THREADS PIXELS_PER_IMG / CF
-#define WORKGROUP 1024
-#define SPARSITY SPARSITY_VAL
-
-
-#define STREAMS 8
 
 #define OFFSET_R TILE * 0
 #define OFFSET_G TILE * 1
@@ -221,16 +138,6 @@ typedef struct arg_da_struct_type {
 #define OFFSET_C TILE * 5
 #define OFFSET_D TILE * 6
 #define OFFSET_E TILE * 7
-#define OFFSET_F TILE * 8
-#define OFFSET_H TILE * 9
-#define OFFSET_J TILE * 10
-#define OFFSET_K TILE * 11
-#define OFFSET_L TILE * 12
-#define OFFSET_M TILE * 13 
-#define OFFSET_N TILE * 14
-#define OFFSET_O TILE * 15
-#define OFFSET_P TILE * 16
-#define OFFSET_Q TILE * 17 
 
 
 #define ERROR_THRESH 0.0001f   // relaxed FP-precision checking, need for higher AI kernels

@@ -99,8 +99,8 @@ done
 
 [ "$mem" ] || { mem="1"; }
 [ "$cfactor" ] || { cfactor="1"; }
-[ "$size" ] || { size="1000"; }
-[ "$pixels" ] || { pixels="1024"; }
+[ "$size" ] || { size="1"; }
+[ "$pixels" ] || { pixels="4096"; }
 [ "$threads" ] || { threads=${pixels}; }
 [ "$sparsity" ] || { sparsity="1"; }
 [ "$tile" ] || { tile="64"; }
@@ -183,7 +183,7 @@ if [ $regs ]; then
 #	rm tmp
 else 
 	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread 
-	echo "${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread"
+#	echo "${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu --ptxas-options  -lpthread"
 fi
 fi
 
