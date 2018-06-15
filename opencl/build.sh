@@ -13,7 +13,7 @@ CC=/usr/bin/gcc
 CC=/opt/rocm/hcc/bin/clang
 CXX=g++
 CLOC_PATH=/opt/rocm/hcc2/bin
-
+CLOC_PATH=/opt/rocm/hcc2_0.4-0/bin
 
 while [ $# -gt 0 ]; do
   key="$1"

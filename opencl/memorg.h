@@ -123,7 +123,15 @@ void dev_copy_aos(pixel **src_images, pixel **dst_images,
 		  int gpu_agents_used, int objs, int obj_size, 
 		   int placement); 
 
-void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
+void dev_copy_da_new(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, DATA_ITEM_TYPE **b,
+		     DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_g, DATA_ITEM_TYPE **dev_b,
+		     DATA_ITEM_TYPE **dev_d_r, DATA_ITEM_TYPE **dev_d_g, DATA_ITEM_TYPE **dev_d_b,
+		     hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
+		     int gpu_agents_used, int objs, int obj_size, 
+		     int placement, double *t);
+
+#if 0
+  void dev_copy_da_new(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
 		 DATA_ITEM_TYPE **b, DATA_ITEM_TYPE **x, 
 		 DATA_ITEM_TYPE **a, DATA_ITEM_TYPE **c, 
 		 DATA_ITEM_TYPE **d, DATA_ITEM_TYPE **e, 
@@ -162,7 +170,7 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
 		 hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
 		 int gpu_agents_used, int objs, int obj_size, 
 		 int placement);
-
+#endif
 
 
 void dev_copy_ca(DATA_ITEM_TYPE **src_images, DATA_ITEM_TYPE **dst_images, 
@@ -311,11 +319,11 @@ void convert_da_to_aos(DATA_ITEM_TYPE *d_r, DATA_ITEM_TYPE *d_g, DATA_ITEM_TYPE 
 		       DATA_ITEM_TYPE *d_x, pixel *dst_images, 
 		       int start, int end);
 
-void dev_copy_da_new(DATA_ITEM_TYPE **r,
-		     DATA_ITEM_TYPE **dev_r, 
-		     hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
-		     int gpu_agents_used, int objs, int obj_size, 
-		     int placement);
+/* void dev_copy_da_new(DATA_ITEM_TYPE **r, */
+/* 		     DATA_ITEM_TYPE **dev_r,  */
+/* 		     hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents,  */
+/* 		     int gpu_agents_used, int objs, int obj_size,  */
+/* 		     int placement); */
 
 void dev_copy_da_allocate(DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_d_r, 
 			  hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 

@@ -1,5 +1,2 @@
-MemUnitStalled
-MemUnitBusy
-SALUBusy
-VALUBusy
-WriteUnitStalled
+VALUInsts
+VALUUtilization

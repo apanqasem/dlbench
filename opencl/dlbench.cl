@@ -8,12 +8,12 @@ __kernel void grayscale_aos(__global pixel *src_images,
   //  size_t i = get_local_id(0); 
   //  size_t group_id = get_group_id(0);
   size_t i = get_global_id(0); 
-
+  float F0 = 0.02f; 
+  dst_images[i].r = src_images[i].r * F0 - src_images[i].g; 
 #if 0
   int sets = (group_id / SPARSITY);    // sets processed
   int set_offset = WORKGROUP * SPARSITY * sets;
   i = (i * SPARSITY) + (group_id - SPARSITY * sets) + set_offset;
-#endif
   float F0 = 0.02f; 
   float F1 = 0.30f; 
   
@@ -88,6 +88,7 @@ __kernel void grayscale_aos(__global pixel *src_images,
 	}
       }
     }
+#endif
 }
     
 __kernel void copy_da(__global DATA_ITEM_TYPE *r, __global DATA_ITEM_TYPE *d_r, 

@@ -1100,39 +1100,113 @@ void dev_copy_da_allocate(DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_d_r,
   return; 
 }
 
-void dev_copy_da_new(DATA_ITEM_TYPE **r,
-		     DATA_ITEM_TYPE **dev_r, 
+/* void dev_copy_da_new(DATA_ITEM_TYPE **r, */
+/* 		     DATA_ITEM_TYPE **dev_r,  */
+/* 		     hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents,  */
+/* 		     int gpu_agents_used, int objs, int obj_size,  */
+/* 		     int placement) { */
+  
+/*   unsigned objs_per_device = objs / gpu_agents_used;  */
+/*   int trailing_objs = objs % gpu_agents_used; */
+/*   unsigned long segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE); */
+  
+/*   hsa_status_t err; */
+/*   hsa_signal_value_t value; */
+/*   int i = 0; */
+/*   hsa_signal_t copy_sig[gpu_agents_used]; */
+
+/*   for (i = 0; i < gpu_agents_used; i++) { */
+/*     if (i == gpu_agents_used - 1) { */
+/*       objs_per_device = objs_per_device + trailing_objs; */
+/*       segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE); */
+/*     } */
+
+/*     err=hsa_signal_create(1, 0, NULL, &copy_sig[i]); */
+/*     check(Creating a HSA signal, err); */
+/*     hsa_amd_memory_async_copy(dev_r[i], gpu_agents[i], r[i], gpu_agents[i], */
+/* 			      segment_size, 0, NULL, copy_sig[i]); */
+/*     value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX, */
+/* 				    HSA_WAIT_STATE_ACTIVE); */
+/*     err=hsa_signal_destroy(copy_sig[i]); */
+
+/*   } */
+/* } */
+
+
+void dev_copy_da_new(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
+		     DATA_ITEM_TYPE **b,
+		     DATA_ITEM_TYPE **dev_r, DATA_ITEM_TYPE **dev_g, 
+		     DATA_ITEM_TYPE **dev_b,
+		     DATA_ITEM_TYPE **dev_d_r, DATA_ITEM_TYPE **dev_d_g, 
+		     DATA_ITEM_TYPE **dev_d_b,
 		     hsa_agent_t* gpu_agents, hsa_agent_t *cpu_agents, 
 		     int gpu_agents_used, int objs, int obj_size, 
-		     int placement) {
-  
-  unsigned objs_per_device = objs / gpu_agents_used; 
-  int trailing_objs = objs % gpu_agents_used;
-  unsigned long segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
-  
-  hsa_status_t err;
-  hsa_signal_value_t value;
-  int i = 0;
-  hsa_signal_t copy_sig[gpu_agents_used];
+		     int placement, double *t) {
 
-  for (i = 0; i < gpu_agents_used; i++) {
-    if (i == gpu_agents_used - 1) {
-      objs_per_device = objs_per_device + trailing_objs;
-      segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
+    unsigned objs_per_device = objs / gpu_agents_used; 
+    int trailing_objs = objs % gpu_agents_used;
+    unsigned long segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
+
+    double cp_to_dev_time;
+    hsa_status_t err;
+    hsa_signal_value_t value;
+    int i = 0;
+    hsa_signal_t copy_sig[gpu_agents_used];
+    for (i = 0; i < gpu_agents_used; i++) {
+      if (i == gpu_agents_used - 1) {
+	objs_per_device = objs_per_device + trailing_objs;
+	segment_size = objs_per_device * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE);
+      }
+      if (placement == PLACE_DEVMEM) {
+	dev_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+	dev_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+	dev_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      }
+      dev_d_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      dev_d_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      dev_d_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+      if (placement == PLACE_DEVMEM) {
+      
+	if (!dev_r[i] || !dev_g[i] || !dev_b[i])  {
+	  // || !dev_g[i] || !dev_d_r[i] 
+	  //	   || !dev_d_g[i] || !dev_d_b[i] || !dev_d_x[i]) {
+	  printf("Unable to malloc discrete arrays to device memory. Exiting\n");
+	  exit(0);
+	}
+      
+	cp_to_dev_time = mysecond();
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_r[i], gpu_agents[i], r[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+	cp_to_dev_time = 1.0E6 * (mysecond() - cp_to_dev_time);
+	(*t) = cp_to_dev_time;
+	
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_g[i], gpu_agents[i], g[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+	
+	// #if defined MEM3 || MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
+	err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
+	check(Creating a HSA signal, err);
+	hsa_amd_memory_async_copy(dev_b[i], gpu_agents[i], b[i], gpu_agents[i],
+				  segment_size, 0, NULL, copy_sig[i]);
+	value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
+					HSA_WAIT_STATE_ACTIVE);
+	err=hsa_signal_destroy(copy_sig[i]);
+      }
     }
-
-    err=hsa_signal_create(1, 0, NULL, &copy_sig[i]);
-    check(Creating a HSA signal, err);
-    hsa_amd_memory_async_copy(dev_r[i], gpu_agents[i], r[i], gpu_agents[i],
-			      segment_size, 0, NULL, copy_sig[i]);
-    value = hsa_signal_wait_acquire(copy_sig[i], HSA_SIGNAL_CONDITION_LT, 1, UINT64_MAX,
-				    HSA_WAIT_STATE_ACTIVE);
-    err=hsa_signal_destroy(copy_sig[i]);
-
-  }
+    return;
 }
 
-
+#if 0 
 void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
 		 DATA_ITEM_TYPE **b, DATA_ITEM_TYPE **x, 
 		 DATA_ITEM_TYPE **a, DATA_ITEM_TYPE **c, 
@@ -1236,10 +1310,13 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
 #if defined MEM18
 	dev_q[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 #endif
+      
+#endif
       }
       dev_d_r[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
       dev_d_g[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
       dev_d_b[i] = (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
+#if 0
 #if defined MEM4 || MEM5 || MEM6 || MEM7 || MEM8 || MEM9 || MEM10 || MEM11 || MEM12 || MEM13 || MEM14 || MEM15 || MEM16 || MEM17 || MEM18
       dev_d_x[i] =  (DATA_ITEM_TYPE *) malloc_device_mem_agent(gpu_agents[i], segment_size);
 #endif
@@ -1466,13 +1543,14 @@ void dev_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g,
 					HSA_WAIT_STATE_ACTIVE);
 	err=hsa_signal_destroy(copy_sig[i]);
 #endif
-	#endif
+#endif
       }
     }
     return;
 }
 
- 
+#endif
+
 void host_copy_da(DATA_ITEM_TYPE **r, DATA_ITEM_TYPE **g, 
 		 DATA_ITEM_TYPE **b, DATA_ITEM_TYPE **x, 
 		 DATA_ITEM_TYPE **a, DATA_ITEM_TYPE **c, 

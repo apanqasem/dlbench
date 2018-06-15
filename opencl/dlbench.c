@@ -479,20 +479,13 @@ int main(int argc, char *argv[]) {
     /* 		    placement); */
 
 #if 1
-    cp_to_dev_time = mysecond();
-    dev_copy_da(r, g, b, x, a, c, d, e, f, h, j, k, l, m, n, o, p, q,
-		d_r, d_g, d_b, d_x, d_a, d_c, d_d, d_e, d_f, d_h, d_j, d_k, d_l, d_m, d_n, d_o, d_p, d_q, 
-		dev_r, dev_g, dev_b, dev_x,
-		dev_a, dev_c, dev_d, dev_e, 
-		dev_f, dev_h, dev_j, dev_k, 
-		dev_l, dev_m, dev_n, dev_o, dev_p, dev_q,
-		dev_d_r, dev_d_g, dev_d_b, dev_d_x, 
-		dev_d_a, dev_d_c, dev_d_d, dev_d_e, 
-		dev_d_f, dev_d_h, dev_d_j, dev_d_k, 
-		dev_d_l, dev_d_m, dev_d_n, dev_d_o, dev_d_p, dev_d_q,
-		gpu_agents, cpu_agents, 
-		gpu_agents_used, objs, obj_size, placement);
-    cp_to_dev_time = 1.0E6 * (mysecond() - cp_to_dev_time);
+    //    cp_to_dev_time = mysecond();
+    dev_copy_da_new(r, g, b, 
+		    dev_r, dev_g, dev_b,
+		    dev_d_r, dev_d_g, dev_d_b, 
+		    gpu_agents, cpu_agents, 
+		    gpu_agents_used, objs, obj_size, placement, &cp_to_dev_time);
+    //    cp_to_dev_time = 1.0E6 * (mysecond() - cp_to_dev_time);
 #endif
     //#endif
 #endif // END DA 
@@ -728,7 +721,7 @@ int main(int argc, char *argv[]) {
 #endif
 #ifdef DA
     cp_to_host_time = mysecond();
-#if 0
+#if 1
     host_copy_da(r, g, b, x, a, c, d, e, f, h, j, k, l, m, n, o, p, q,
 		 d_r, d_g, d_b, d_x, d_a, d_c, d_d, d_e, d_f, d_h, d_j, d_k, d_l, d_m, d_n, d_o, d_p, d_q, 
 		 dev_r, dev_g, dev_b, dev_x,
@@ -874,7 +867,7 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "%3.2f,", gFLOP); 
     fprintf(stdout, "%3.2f,", dataGB); 
     fprintf(stdout, "%3.2f,", dataGB/ tKernel);
-    fprintf(stdout, "%3.2f,", dataGB/(cp_to_dev_time/1e+06)); 
+    fprintf(stdout, "%3.2f,", (dataGB/2)/(cp_to_dev_time/1e+06)); 
     fprintf(stdout, "%3.2f,", dataGB/(cp_to_host_time/1e+06)); 
     fprintf(stdout, "%3.2f\n", gFLOP/ tKernel);
 #else
