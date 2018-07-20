@@ -1,2 +1,4 @@
-MemUnitBusy
-MemUnitStalled
+FlatVMemInsts
+L2CacheHit
+VFetchInsts
+VWriteInsts
