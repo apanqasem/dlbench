@@ -41,6 +41,10 @@ while [ $# -gt 0 ]; do
 			threads="$2"
 			shift
 			;;
+		--blksize)
+			blksize="$2"
+			shift
+			;;
     --placement)
       placement="$2"
 			shift
@@ -102,6 +106,7 @@ done
 [ "$size" ] || { size="1"; }
 [ "$pixels" ] || { pixels="4096"; }
 [ "$threads" ] || { threads=${pixels}; }
+[ "$blksize" ] || { blksize=64; }
 [ "$sparsity" ] || { sparsity="1"; }
 [ "$tile" ] || { tile="64"; }
 
@@ -165,7 +170,7 @@ fi
 
 # build from C source 
 if [ $mode = "build" ]; then
-		${HCC} -c -w -g ${CXXFLAGS} ${INCPATH} ${FLAGS} -DHC -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cpp
+		${HCC} -c -w -g ${CXXFLAGS} ${INCPATH} ${FLAGS} -DHC -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -DWKGRP=${blksize} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cpp
     ${HCC} -o dlbench_${layout} dlbench.o -lpthread	${LDFLAGS}	
 
 fi
