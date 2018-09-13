@@ -33,10 +33,9 @@ __global__ void grayscale(float *r, float *g, float *b, float *x, float *a, floa
 			    float *dst_r, float *dst_g, float *dst_b, float *dst_x, float *dst_a, float *dst_c, float *dst_d,
 			    float *dst_e) {
 #endif
-  int tidx = threadIdx.x;// + blockDim.x * blockIdx.x;
+  int tidx = threadIdx.x + blockDim.x * blockIdx.x;
 
-#if 1
-  //  int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+#if 0
   int sets = (blockIdx.x / SPARSITY);    // sets processed 
   int set_offset = WORKGROUP * SPARSITY * sets;
   tidx = (tidx * SPARSITY) + (blockIdx.x - SPARSITY * sets) + set_offset;

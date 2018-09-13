@@ -364,6 +364,17 @@ int main(int argc,char *argv[]) {
 #endif
 
 #ifdef DA
+#ifdef UM
+  DATA_ITEM_TYPE *r, *g, *b, *x, *a, *c, *d, *e; 
+  gpuErrchk(cudaMallocManaged(&r, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS)); 
+  gpuErrchk(cudaMallocManaged(&g, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS)); 
+  gpuErrchk(cudaMallocManaged(&b, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS)); 
+  gpuErrchk(cudaMallocManaged(&x, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS)); 
+  gpuErrchk(cudaMallocManaged(&a, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS)); 
+  gpuErrchk(cudaMallocManaged(&c, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS)); 
+  gpuErrchk(cudaMallocManaged(&d, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS)); 
+  gpuErrchk(cudaMallocManaged(&e, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
+#else
   DATA_ITEM_TYPE *r = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
   DATA_ITEM_TYPE *g = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
   DATA_ITEM_TYPE *b = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
@@ -372,6 +383,7 @@ int main(int argc,char *argv[]) {
   DATA_ITEM_TYPE *c = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
   DATA_ITEM_TYPE *d = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
   DATA_ITEM_TYPE *e = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
+#endif
 
   DATA_ITEM_TYPE *dst_r = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
   DATA_ITEM_TYPE *dst_g = (DATA_ITEM_TYPE *) malloc(sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS); 
@@ -558,8 +570,9 @@ int main(int argc,char *argv[]) {
     gpuErrchk(cudaEventRecord(stop_copy_to_dev,0));
  #endif
  #endif
- #ifdef DA
-   gpuErrchk(cudaMalloc((void **) &d_r, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
+#ifdef DA
+#ifndef UM
+    gpuErrchk(cudaMalloc((void **) &d_r, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
 #if (MEM >= 2)
    gpuErrchk(cudaMalloc((void **) &d_g, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
 #endif
@@ -581,7 +594,7 @@ int main(int argc,char *argv[]) {
 #if (MEM >= 8)
    gpuErrchk(cudaMalloc((void **) &d_e, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
 #endif
-
+#endif
    gpuErrchk(cudaMalloc((void **) &d_dst_r, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
 #if (MEM >= 2)
    gpuErrchk(cudaMalloc((void **) &d_dst_g, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
@@ -605,6 +618,7 @@ int main(int argc,char *argv[]) {
    gpuErrchk(cudaMalloc((void **) &d_dst_e, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS));
 #endif
 
+#ifndef UM
    gpuErrchk(cudaEventRecord(start_copy_to_dev,0));
    gpuErrchk(cudaMemcpy(d_r, r, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS,cudaMemcpyHostToDevice));
 #if (MEM >= 2)
@@ -629,7 +643,8 @@ int main(int argc,char *argv[]) {
    gpuErrchk(cudaMemcpy(d_e, e, sizeof(DATA_ITEM_TYPE) * PIXELS_PER_IMG * NUM_IMGS,cudaMemcpyHostToDevice));
 #endif
    gpuErrchk(cudaEventRecord(stop_copy_to_dev,0));
- #endif
+#endif
+#endif
  #ifdef CA
    gpuErrchk(cudaMalloc((void **) &d_src_images, size));
    gpuErrchk(cudaMalloc((void **) &d_dst_images, size)); 
@@ -680,8 +695,43 @@ int main(int argc,char *argv[]) {
  #endif
  #endif
 
- #ifdef DA
- #if (MEM == 1)
+#ifdef DA
+#ifdef UM 
+#if (MEM == 1)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r,d_dst_r);
+ #endif
+ #if (MEM == 2)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r, g, 
+						 d_dst_r, d_dst_g);
+ #endif
+ #if (MEM == 3)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r, g, b, 			  
+						 d_dst_r, d_dst_g, d_dst_b);
+ #endif
+ #if (MEM == 4)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r, g, b, x,  			  
+						 d_dst_r, d_dst_g, d_dst_b, d_dst_x);
+ #endif
+ #if (MEM == 5)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r, g, b, x, a, 			  
+						 d_dst_r, d_dst_g, d_dst_b, d_dst_x, d_dst_a);
+ #endif
+ #if (MEM == 6)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r, g, b, x, a, c, 			  
+						 d_dst_r, d_dst_g, d_dst_b, d_dst_x, d_dst_a, d_dst_c);
+ #endif
+ #if (MEM == 7)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r, g, b, x, a, c, d, 	
+						 d_dst_r, d_dst_g, d_dst_b, d_dst_x, d_dst_a, 
+						 d_dst_c, d_dst_d);
+ #endif
+ #if (MEM == 8)
+    grayscale<<<blocksPerGrid,threadsPerBlock>>>(r, g, b, x, a, c, d, e, 
+						 d_dst_r, d_dst_g, d_dst_b, d_dst_x, d_dst_a, 
+						 d_dst_c, d_dst_d, d_dst_e);
+ #endif
+#else
+#if (MEM == 1)
     grayscale<<<blocksPerGrid,threadsPerBlock>>>(d_r,d_dst_r);
  #endif
  #if (MEM == 2)
@@ -714,7 +764,7 @@ int main(int argc,char *argv[]) {
 						 d_dst_r, d_dst_g, d_dst_b, d_dst_x, d_dst_a, 
 						 d_dst_c, d_dst_d, d_dst_e);
  #endif
-
+#endif
  #endif
  #ifdef CA
     grayscale<<<blocksPerGrid,threadsPerBlock>>>(d_src_images, d_dst_images);  
@@ -723,6 +773,7 @@ int main(int argc,char *argv[]) {
     grayscale<<<blocksPerGrid,threadsPerBlock>>>(d_src_images, d_dst_images);  
  #endif
     gpuErrchk(cudaEventRecord(stop_kernel,0));
+
     gpuErrchk(cudaEventSynchronize(start_kernel));
     gpuErrchk(cudaEventSynchronize(stop_kernel));
     gpuErrchk(cudaEventElapsedTime(&msecTotal, start_kernel, stop_kernel));
@@ -835,7 +886,7 @@ int main(int argc,char *argv[]) {
 #endif
 #ifndef HETERO
 #ifdef DEVICE
-  fprintf(stdout, "%3.2f,", t);
+  fprintf(stdout, "%3.2f,", t/1000);
   fprintf(stdout, "%3.2f\n", (t_with_copy/1000));
 #endif
 #endif

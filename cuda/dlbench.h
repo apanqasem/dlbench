@@ -7,6 +7,7 @@
 #define THREADS __THREADS
 
 #define ITERS ((MEM * 4 * 2) - 2) + (INTENSITY - 1) * (MEM * 4 * 2)
+//#define ITERS 0
 #define FIELDS MEM
 
 #define SWEEPS 1   
@@ -15,7 +16,7 @@
 #define TILE TILESIZE
 
 #define THREADS PIXELS_PER_IMG / CF
-#define WORKGROUP 64
+#define WORKGROUP BLKS
 #define SPARSITY SPARSITY_VAL
 
 typedef struct pixel_type {

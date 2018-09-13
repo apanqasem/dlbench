@@ -75,15 +75,16 @@ while [ $# -gt 0 ]; do
 			agent="$2"
 			shift
 			;;
-    -b|--brig)
-      module_type="BRIG"
+    -b|--blksize)
+      blksize=$2
+			shift
       ;;
     -a|--alloc)
       alloc="$2"
 			shift
 			;;
     -v|--verbose)
-      verbose="VERBOSE"
+      verbose=true
 			;;
     *)
 			echo "Unknown option:" $key
@@ -104,13 +105,13 @@ done
 [ "$threads" ] || { threads=${pixels}; }
 [ "$sparsity" ] || { sparsity="1"; }
 [ "$tile" ] || { tile="64"; }
+[ "$blksize" ] || { blksize="256"; }
 
 [ "$intensity" ] || { intensity="1"; }  
 [ "$mode" ] || { mode="build";} 
 [ "$agent" ] || { agent="DEVICE";}
 [ "$placement" ] || { placement="DM";}
 [ "$copy" ] || { copy="NOCOPY";}
-[ "$verbose" ] || { verbose="CURT";}
 
 LAYOUTS="AOS DA SOA CA"
 
@@ -173,17 +174,23 @@ if [ $((${pixels} % ${threads})) -ne 0 ]; then
 		exit 0
 fi
 
+DEFS="-DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -DIMGS=${size} -D${layout} -D${agent} -D${placement} -DBLKS=${blksize}"
+
 # build from C source 
 if [ $mode = "build" ]; then
-#	echo "${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} -DINTENSITY=${intensity} -D${layout} -D${agent} dlbench.cu -lpthread"
-if [ $regs ]; then 
-	${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} --keep --ptxas-options -v -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -DIMGS=${size} -D${layout} -D${agent} -D${placement} dlbench.cu -lpthread # 2> tmp
-#	res=`cat tmp | grep registers | awk '{print $5}'`
-#	echo $res
-#	rm tmp
-else 
-	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu -lpthread 
-#	echo "${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbench.cu --ptxas-options  -lpthread"
-fi
+#		if [ $regs ]; then 
+				${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} -w  ${DEFS} dlbench.cu -lpthread # 2> tmp
+				if [ "${verbose}" ]; then 
+						echo "${CC} -o dlbench_${layout} ${INCPATH} ${FLAGS} --keep --ptxas-options -v ${DEFS} dlbench.cu -lpthread"
+				fi
+				#				res=`cat tmp | grep registers | awk '{print $5}'`
+#				echo $res
+#				rm tmp
+#		fi
+else
+	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbasic.cu -lpthread 
+	if [ "${verbose}" ]; then 
+			echo 	${CC} -o dlbench_${layout} -w -g ${INCPATH} ${FLAGS} -DMEM=${mem} -DCOARSENFACTOR=${cfactor} -DTILESIZE=${tile} -DINTENSITY=${intensity} -DSPARSITY_VAL=${sparsity} -DPIXELS=${pixels} -D__THREADS=${threads}  -DIMGS=${size} -D${layout} -D${pattern} -DKITERS=${kiters} -D${agent} -D${placement} dlbasic.cu -lpthread 
+	fi
 fi
 
