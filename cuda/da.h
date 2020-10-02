@@ -1,47 +1,47 @@
 #include<kernel.h>
 #ifdef DA
 #if (MEM == 1)
-__global__ void grayscale(float *r, 
-			  float *dst_r) {
+__global__ void grayscale(DATA_ITEM_TYPE *r, 
+			  DATA_ITEM_TYPE *dst_r) {
 #endif
 #if (MEM == 2)
-__global__ void grayscale(float *r, float *g, 
-			  float *dst_r, float *dst_g) {
+__global__ void grayscale(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, 
+			  DATA_ITEM_TYPE *dst_r, DATA_ITEM_TYPE *dst_g) {
 #endif
 #if (MEM == 3)
-__global__ void grayscale(float *r, float *g, float *b, 			  
-			  float *dst_r, float *dst_g, float *dst_b) {
+__global__ void grayscale(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, 			  
+			  DATA_ITEM_TYPE *dst_r, DATA_ITEM_TYPE *dst_g, DATA_ITEM_TYPE *dst_b) {
 #endif
 #if (MEM == 4)
-__global__ void grayscale(float *r, float *g, float *b, float *x,  			  
-			  float *dst_r, float *dst_g, float *dst_b, float *dst_x) {
+__global__ void grayscale(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x,  			  
+			  DATA_ITEM_TYPE *dst_r, DATA_ITEM_TYPE *dst_g, DATA_ITEM_TYPE *dst_b, DATA_ITEM_TYPE *dst_x) {
 #endif
 #if (MEM == 5)
-__global__ void grayscale(float *r, float *g, float *b, float *x, float *a, 			  
-			  float *dst_r, float *dst_g, float *dst_b, float *dst_x, float *dst_a) {
+__global__ void grayscale(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x, DATA_ITEM_TYPE *a, 			  
+			  DATA_ITEM_TYPE *dst_r, DATA_ITEM_TYPE *dst_g, DATA_ITEM_TYPE *dst_b, DATA_ITEM_TYPE *dst_x, DATA_ITEM_TYPE *dst_a) {
 #endif
 #if (MEM == 6)
-__global__ void grayscale(float *r, float *g, float *b, float *x, float *a, float *c, 			  
-			  float *dst_r, float *dst_g, float *dst_b, float *dst_x, float *dst_a, float *dst_c) {
+__global__ void grayscale(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x, DATA_ITEM_TYPE *a, DATA_ITEM_TYPE *c, 			  
+			  DATA_ITEM_TYPE *dst_r, DATA_ITEM_TYPE *dst_g, DATA_ITEM_TYPE *dst_b, DATA_ITEM_TYPE *dst_x, DATA_ITEM_TYPE *dst_a, DATA_ITEM_TYPE *dst_c) {
 #endif
 #if (MEM == 7)
-__global__ void grayscale(float *r, float *g, float *b, float *x, float *a, float *c, float *d, 			  
-			  float *dst_r, float *dst_g, float *dst_b, float *dst_x, float *dst_a, float *dst_c, float *dst_d) {
+__global__ void grayscale(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x, DATA_ITEM_TYPE *a, DATA_ITEM_TYPE *c, DATA_ITEM_TYPE *d, 			  
+			  DATA_ITEM_TYPE *dst_r, DATA_ITEM_TYPE *dst_g, DATA_ITEM_TYPE *dst_b, DATA_ITEM_TYPE *dst_x, DATA_ITEM_TYPE *dst_a, DATA_ITEM_TYPE *dst_c, DATA_ITEM_TYPE *dst_d) {
 #endif
 #if (MEM == 8)
-  __global__ void grayscale(float *r, float *g, float *b, float *x, float *a, float *c, float *d, float *e, 
-			    float *dst_r, float *dst_g, float *dst_b, float *dst_x, float *dst_a, float *dst_c, float *dst_d,
-			    float *dst_e) {
+  __global__ void grayscale(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, DATA_ITEM_TYPE *x, DATA_ITEM_TYPE *a, DATA_ITEM_TYPE *c, DATA_ITEM_TYPE *d, DATA_ITEM_TYPE *e, 
+			    DATA_ITEM_TYPE *dst_r, DATA_ITEM_TYPE *dst_g, DATA_ITEM_TYPE *dst_b, DATA_ITEM_TYPE *dst_x, DATA_ITEM_TYPE *dst_a, DATA_ITEM_TYPE *dst_c, DATA_ITEM_TYPE *dst_d,
+			    DATA_ITEM_TYPE *dst_e) {
 #endif
-  int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+    int tidx = threadIdx.x + blockDim.x * blockIdx.x;
 
 #if 0
   int sets = (blockIdx.x / SPARSITY);    // sets processed 
   int set_offset = WORKGROUP * SPARSITY * sets;
-  tidx = (tidx * SPARSITY) + (blockIdx.x - SPARSITY * sets) + set_offset;
+  int tidx = (tidx * SPARSITY) + (blockIdx.x - SPARSITY * sets) + set_offset;
 #endif
 
-  DATA_ITEM_TYPE alpha = 0.0f;
+  DATA_ITEM_TYPE alpha = 0.0;
   for (int j = 0; j < NUM_IMGS * PIXELS_PER_IMG; j = j + PIXELS_PER_IMG) {
 
 #if (MEM == 1)  
@@ -53,7 +53,6 @@ __global__ void grayscale(float *r, float *g, float *b, float *x, float *a, floa
 #if (MEM > 2) 
     KERNEL2(alpha,r[tidx + j],g[tidx + j],b[tidx + j]);
 #endif 
-
     for (int k = 0; k < ITERS; k++)
       KERNEL1(alpha,alpha,r[tidx + j]);
 

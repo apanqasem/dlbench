@@ -33,8 +33,8 @@ double mysecond() {
 void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int device_end) {
   int errors = 0;
 #ifdef HOST
-  float F0 = 0.02f; 
-  float F1 = 0.30f; 
+  DATA_ITEM_TYPE F0 = 0.02f; 
+  DATA_ITEM_TYPE F1 = 0.30f; 
   for (int j =  host_start * PIXELS_PER_IMG; j < NUM_IMGS * PIXELS_PER_IMG; j += PIXELS_PER_IMG)
     for (unsigned int i = j; i < j + PIXELS_PER_IMG; i++) {
       DATA_ITEM_TYPE v0 = 0.0f;
@@ -52,7 +52,7 @@ void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int
       if (i == 512)
 	printf("%3.2f %3.2f\n", exp_result, dst_images[512].r);
 #endif
-      float delta = fabs(dst_images[i].r - exp_result);
+      DATA_ITEM_TYPE delta = fabs(dst_images[i].r - exp_result);
       if (delta/exp_result > ERROR_THRESH) {
         errors++;
 #ifdef VERBOSE
@@ -83,7 +83,7 @@ void check_results_aos(pixel *src_images, pixel *dst_images, int host_start, int
 	printf("%3.2f %3.2f\n", exp_result, dst_images[i].r);
       }
 #endif
-      float delta = fabs(dst_images[i].r - exp_result);
+      DATA_ITEM_TYPE delta = fabs(dst_images[i].r - exp_result);
       if (delta/exp_result > ERROR_THRESH) {
         errors++;
 #ifdef DEBUG
@@ -100,12 +100,12 @@ void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, D
                       DATA_ITEM_TYPE *d_r, int host_start, int device_end) {
   int errors = 0;
 #ifdef HOST
-  float F0 = 0.02f; 
-  float F1 = 0.30f; 
+  DATA_ITEM_TYPE F0 = 0.02; 
+  DATA_ITEM_TYPE F1 = 0.30; 
   for (int j =  host_start * PIXELS_PER_IMG; j < NUM_IMGS * PIXELS_PER_IMG; j += PIXELS_PER_IMG) {
     for (unsigned int i = j; i < j + PIXELS_PER_IMG; i++) {
-      DATA_ITEM_TYPE v0 = 0.0f;
-      DATA_ITEM_TYPE v1 = 0.0f;
+      DATA_ITEM_TYPE v0 = 0.0;
+      DATA_ITEM_TYPE v1 = 0.0;
       for (int k = 0; k < ITERS; k++) {
 	v0 = v0 + (r[i] / g[i] + (F0 + F1 * F1) * b[i]) / (F1 * b[i]);
 	v1 = v0 - F1 * b[i];
@@ -116,7 +116,7 @@ void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, D
 	  printf("%3.2f %3.2f\n", exp_result, d_r[i]);
       }
 #endif
-      float delta = fabs(d_r[i] - exp_result);
+      DATA_ITEM_TYPE delta = fabs(d_r[i] - exp_result);
       if (delta/exp_result > ERROR_THRESH) {
 	  errors++;
 #ifdef VERBOSE
@@ -151,7 +151,7 @@ void check_results_da(DATA_ITEM_TYPE *r, DATA_ITEM_TYPE *g, DATA_ITEM_TYPE *b, D
       if (i == 512)    // check a pixel in the middle of the image
         printf("%f %f\n", exp_result, d_r[i]);
 #endif
-      float delta = fabs(d_r[i] - exp_result);
+      DATA_ITEM_TYPE delta = fabs(d_r[i] - exp_result);
       if (delta/exp_result > ERROR_THRESH) {
         errors++;
 #ifdef DEBUG
@@ -170,8 +170,8 @@ void check_results_ca(DATA_ITEM_TYPE *src_images, DATA_ITEM_TYPE *dst_images,
 
   int errors = 0;
 #if 0
-  float F0 = 0.02f; 
-  float F1 = 0.30f; 
+  DATA_ITEM_TYPE F0 = 0.02f; 
+  DATA_ITEM_TYPE F1 = 0.30f; 
   for (int j = 0; j < device_end * PIXELS_PER_IMG * FIELDS; j += (PIXELS_PER_IMG * FIELDS))
       for (int k = j; k < j + (PIXELS_PER_IMG * FIELDS); k += TILE * FIELDS) {
 	for (int m = k; m < k + TILE; m++) { 
@@ -188,7 +188,7 @@ void check_results_ca(DATA_ITEM_TYPE *src_images, DATA_ITEM_TYPE *dst_images,
 	  if (m == 0)
 	    printf("%f %f\n", exp_result, dst_images[OFFSET_R + m]);
 #endif
-	  float delta = fabs(dst_images[OFFSET_R + m] - exp_result);
+	  DATA_ITEM_TYPE delta = fabs(dst_images[OFFSET_R + m] - exp_result);
 	  if (delta/exp_result > ERROR_THRESH) {
 	    errors++;
 #ifdef DEBUG
@@ -222,7 +222,7 @@ void check_results_ca(DATA_ITEM_TYPE *src_images, DATA_ITEM_TYPE *dst_images,
       if (m == (k + TILE) - 1)
 	printf("%f %f %d\n", exp_result, dst_images[OFFSET_R+ m]);
 #endif
-      float delta = fabs(dst_images[OFFSET_R+ m] - exp_result);
+      DATA_ITEM_TYPE delta = fabs(dst_images[OFFSET_R+ m] - exp_result);
       if (delta/exp_result > ERROR_THRESH) {
         errors++;
 #ifdef DEBUG
@@ -238,8 +238,8 @@ void check_results_ca(DATA_ITEM_TYPE *src_images, DATA_ITEM_TYPE *dst_images,
 
 void check_results_soa(img *src_images, img *dst_images, int host_start, int device_end) {
 
-  float F0 = 0.02f; 
-  float F1 = 0.30f; 
+  DATA_ITEM_TYPE F0 = 0.02f; 
+  DATA_ITEM_TYPE F1 = 0.30f; 
   int errors = 0;
   for (int j = 0; j < device_end; j++) 
     for (unsigned int i = 0; i < PIXELS_PER_IMG; i++) {
@@ -255,7 +255,7 @@ void check_results_soa(img *src_images, img *dst_images, int host_start, int dev
       if (i == 512)
 	printf("%3.2f %3.2f\n", exp_result, dst_images[j].r[i]);
 #endif
-      float delta = fabs(dst_images[j].r[i] - exp_result);
+      DATA_ITEM_TYPE delta = fabs(dst_images[j].r[i] - exp_result);
       if (delta/exp_result > ERROR_THRESH) {
         errors++;
 #ifdef DEBUG
@@ -837,13 +837,13 @@ int main(int argc,char *argv[]) {
 
 #ifdef COPY 
   check_results_aos(src_images, dst_images, host_start, device_end);
-  check_results_da(r, g, b, x, d_r, host_start, device_end);
+  //  check_results_da(r, g, b, x, d_r, host_start, device_end);
 #else
 #ifdef AOS
   check_results_aos(src_images, dst_images, host_start, device_end);
 #endif
 #ifdef DA
-  check_results_da(r, g, b, x, dst_r, host_start, device_end);
+  //  check_results_da(r, g, b, x, dst_r, host_start, device_end);
 #endif
 #ifdef CA
   check_results_ca(src_images, dst_images, host_start, device_end);
@@ -855,7 +855,7 @@ int main(int argc,char *argv[]) {
 
   /* derive perf metrics */
   unsigned long dataMB = (NUM_IMGS * PIXELS_PER_IMG * sizeof(DATA_ITEM_TYPE) * FIELDS)/(1024 * 1024);
-  double flop = (6.0  * (float) ITERS * (float) NUM_IMGS * (float) PIXELS_PER_IMG);
+  double flop = (6.0  * (DATA_ITEM_TYPE) ITERS * (DATA_ITEM_TYPE) NUM_IMGS * (DATA_ITEM_TYPE) PIXELS_PER_IMG);
 
 #ifndef HETERO
 #ifdef DEVICE 
